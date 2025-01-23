@@ -1,5 +1,5 @@
 # Overview
-For our DSC 672 Project at Depual University we are working on cooling urban heat islands by predicting where hotspots exist and are likely to develop, helping urban planners and municipalities design cities that are more livable and resilient.
+For our DSC 672 Project at Depaul University we are working on cooling urban heat islands by predicting where hotspots exist and are likely to develop, helping urban planners and municipalities design cities that are more livable and resilient.
 
 
 # Team
