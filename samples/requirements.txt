@@ -2,3 +2,7 @@
 # as we go.
 
 pystac==1.11.0
+rioxarray==0.18.2
+stackstac==0.5.1
+planetary_computer==1.0.0
+odc-stac==0.3.11
