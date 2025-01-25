@@ -1,0 +1,4 @@
+#NOTE: EY did not provide requirements so we will have to figure this out
+# as we go.
+
+pystac==1.11.0
