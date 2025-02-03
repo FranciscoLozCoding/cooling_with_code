@@ -15,6 +15,8 @@ The main objective is to develop a micro-scale machine learning model that predi
 
 ## Directory setup
 - samples: contains sample notebooks given to us by EY. 
+- data: folder that contains the raw & preprocessed data for the project
+- 
 
 # Datasets
 
