@@ -16,6 +16,8 @@ The main objective is to develop a micro-scale machine learning model that predi
 ## Directory setup
 - samples: contains sample notebooks given to us by EY. 
 - data: folder that contains the raw & preprocessed data for the project
+   - data/test: folder that contains the test datasets. Model Ouputs using this dataset will be turned into EY so that they can grade our model.
+   - data/train: folder that contains the train datasets. We will use these to train our models
 - images: containes images used by notebooks for reporting
 
 # Datasets
