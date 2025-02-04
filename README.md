@@ -8,6 +8,13 @@ This project is part of the **2025 EY Open Science AI & Data Challenge**, which 
 
 The main objective is to develop a micro-scale machine learning model that predicts the locations and severity of the UHI effect. The model will use various datasets, including near-surface air temperatures, building footprint data, weather data, and satellite data, to identify key drivers of UHI. This model will provide insights into urban areas that are most affected by UHI, enabling urban planners and policymakers to take effective mitigation actions.
 
+Model outputs should be in this csv format so that EY can grade our models. [Submission Link](https://challenge.ey.com/challenges/the-2025-ey-open-science-ai-and-data-challenge-cooling-urban-heat-islands-external-participants/submissions).
+
+| Longitude  | Latitude   | UHI Index      |
+|------------|-----------|---------------|
+| -73.971665 | 40.78876333 | <MODEL_OUTPUT> |
+
+
 # Team
 - Francisco Lozano (flozano2@depaul.edu)
 - Dalton Knapp (dknapp7@depaul.edu)
