@@ -46,4 +46,8 @@ The following datasets will be used to develop the model:
 4. **Local Weather Data**
    - Data from New York State Mesonet, including temperature, relative humidity, wind speed, wind direction, and solar flux, collected at two weather stations in the region.
 
+# Project Updates:
+
+1. https://youtu.be/R66yFI8sWi0 
+
 # References: 
