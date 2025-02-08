@@ -51,3 +51,36 @@ The following datasets will be used to develop the model:
 1. https://youtu.be/R66yFI8sWi0 
 
 # References: 
+- New York City UHI Index
+   - Description: Ground temperature data over New York City on July 24, 2021 (CSV format)
+   - Contributors: Climate, Adaptation, Planning, Analytics (CAPA) Strategies
+   - Data Host: Center for Open Science - https://www.cos.io
+   - Terms of Use: https://github.com/CenterForOpenScience/cos.io/blob/master/TERMS_OF_USE.md
+   - License: Apache 2.0 > https://github.com/CenterForOpenScience/cos.io/blob/master/LICENSE
+- Satellite Data (Sentinel-2 Sample Output)
+   - Description: Copernicus Sentinel-2 sample data from 2021 obtained from the Microsoft Planetary Computer (TIFF format)
+   - Contributors: European Space Agency (ESA), Microsoft
+   - Data Host: Microsoft Planetary Computer - https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a
+   - Terms of Use: https://sentinel.esa.int/documents/247904/690755/Sentinel_Data_Legal_Notice
+   - License: https://creativecommons.org/licenses/by-sa/3.0/igo/
+- Building Footprint Data
+   - Description: Building footprint polygons over the data challenge region of interest (KML format)
+   - Contributors: Open Data Team at the NYC Office of Technology and Innovation (OTI)
+- New York City Open Data Project
+   - Data Host: https://data.cityofnewyork.us/Housing-Development/Building-Footprints/nqwf-w8eh
+   - Terms of Use: https://www.nyc.gov/html/data/terms.html and https://www.nyc.gov/home/terms-of-use.page
+   - License: https://github.com/CityOfNewYork/nyc-geo-metadata#Apache-2.0-1-ov-file
+- Weather Data
+   - Description: Detailed weather data collected every 5 minutes at two locations (Bronx and Manhattan). Includes surface air temperature (2-meters), relative humidity, average wind speed, wind direction, and solar flux.
+   - Contributors: Contributors: New York State Mesonet
+   - Data Host: https://nysmesonet.org/
+   - Terms of Use: https://nysmesonet.org/about/data
+   - License: https://nysmesonet.org/documents/NYS_Mesonet_Data_Access_Policy.pdf
+- Building Footprint Data with Additional Attributes
+   - Description: Building footprints represent the full perimeter outline of each building as viewed from directly above. Additional attribute information maintained for each feature includes: Building Identification Number (BIN); Borough, Block, and Lot information(BBL); ground elevation at building base; roof height above ground elevation; construction year, and feature type.
+   - Data Host: [NYC Open Data](https://data.cityofnewyork.us/City-Government/Building-Footprints/5zhs-2jue)
+   - repo: https://github.com/CityOfNewYork/nyc-geo-metadata/blob/main/Metadata/Metadata_BuildingFootprints.md 
+   - License: https://github.com/CityOfNewYork/nyc-geo-metadata/blob/main/LICENSE
+- Automated Traffic Volume Counts
+   - Description: New York City Department of Transportation (NYC DOT) uses Automated Traffic Recorders (ATR) to collect traffic sample volume counts at bridge crossings and roadways.These counts do not cover the entire year, and the number of days counted per location may vary from year to year.
+   - Data Host: [NYC Open Data](https://data.cityofnewyork.us/Transportation/Automated-Traffic-Volume-Counts/7ym2-wayt)
