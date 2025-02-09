@@ -27,6 +27,8 @@ Model outputs should be in this csv format so that EY can grade our models. [Sub
    - **data/train**: folder that contains the train datasets. We will use these to train our models
 - **images**: containes images used by notebooks for reporting
 
+>NOTE: some of the raw datasets are managed with `git lfs`, refer to this documentation on how to work with `git lfs`: [git-lfs](https://git-lfs.com/), [Github Tutorial](https://github.com/git-lfs/git-lfs/wiki/Tutorial), [Atlassian Tutorial](https://www.atlassian.com/git/tutorials/git-lfs).
+
 # Datasets
 
 The following datasets will be used to develop the model:
