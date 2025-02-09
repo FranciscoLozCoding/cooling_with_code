@@ -1,6 +1,6 @@
 # Overview
 
-**Cooling with Code** aims to address the Urban Heat Island (UHI) effect, a phenomenon where urban areas experience higher temperatures than their rural counterparts due to the lack of vegetation, water bodies, and the dense presence of buildings. The goal of this project is to develop a machine learning model that can predict UHI hotspots in urban areas and understand the key factors contributing to these hotspots. The datasets specifically focus on the Bronx and Manhattan regions in New York City.
+**Cooling with Code** aims to address the Urban Heat Island (UHI) effect, a phenomenon where urban areas experience higher temperatures than their rural counterparts due to the lack of vegetation, water bodies, and the dense presence of buildings. The goal of this project is to develop a machine learning model that can predict UHI hotspots in urban areas and understand the key factors contributing to these hotspots. The datasets specifically focus on the Bronx and Manhattan regions in New York City. Although, the aim is for the model to be used in other urban areas not only New York City
 
 This project is part of the **2025 EY Open Science AI & Data Challenge**, which focuses on solving critical climate issues using AI and machine learning to develop sustainable solutions.
 
@@ -21,11 +21,11 @@ Model outputs should be in this csv format so that EY can grade our models. [Sub
 - Adam Zizi (azizi@depaul.edu)
 
 ## Directory setup
-- samples: contains sample notebooks given to us by EY. 
-- data: folder that contains the raw & preprocessed data for the project
-   - data/test: folder that contains the test datasets. Model Ouputs using this dataset will be turned into EY so that they can grade our model.
-   - data/train: folder that contains the train datasets. We will use these to train our models
-- images: containes images used by notebooks for reporting
+- **samples**: contains sample notebooks given to us by EY. 
+- **data**: folder that contains the raw & preprocessed data for the project
+   - **data/test**: folder that contains the test datasets. Model Ouputs using this dataset will be turned into EY so that they can grade our model.
+   - **data/train**: folder that contains the train datasets. We will use these to train our models
+- **images**: containes images used by notebooks for reporting
 
 # Datasets
 
@@ -45,6 +45,15 @@ The following datasets will be used to develop the model:
 
 4. **Local Weather Data**
    - Data from New York State Mesonet, including temperature, relative humidity, wind speed, wind direction, and solar flux, collected at two weather stations in the region.
+
+5. **Building Footprint Data with Additional Attributes**
+   - Data from NYC Office of Technology and Innovation (OTI)
+   - Useful for understanding the impact of buildings on local temperatures.
+   - This dataset has more attributes than **Building Footprint Data** such as Building height.
+
+6. **Automated Traffic Volume Counts**
+   -  Data from New York City Department of Transportation (NYC DOT)
+   - Useful for understanding the impact of traffic on local temperatures.
 
 # Project Updates:
 
