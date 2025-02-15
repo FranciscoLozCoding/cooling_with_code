@@ -83,7 +83,7 @@ The following datasets will be used to develop the model:
    - License: https://github.com/CityOfNewYork/nyc-geo-metadata#Apache-2.0-1-ov-file
 - Weather Data
    - Description: Detailed weather data collected every 5 minutes at two locations (Bronx and Manhattan). Includes surface air temperature (2-meters), relative humidity, average wind speed, wind direction, and solar flux.
-   - Contributors: Contributors: New York State Mesonet
+   - Contributors: New York State Mesonet
    - Data Host: https://nysmesonet.org/
    - Terms of Use: https://nysmesonet.org/about/data
    - License: https://nysmesonet.org/documents/NYS_Mesonet_Data_Access_Policy.pdf
