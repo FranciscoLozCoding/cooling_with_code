@@ -14,3 +14,5 @@ planetary_computer
 odc-stac
 tqdm
 joblib
+pickle
+scikit-learn
