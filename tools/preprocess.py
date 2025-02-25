@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 
 def load_and_prepare_data(filepath, scaler=None, split=False, test_size=0.3, random_state=42):
@@ -48,3 +49,37 @@ def load_and_prepare_data(filepath, scaler=None, split=False, test_size=0.3, ran
         return X_train, X_valid, y_train, y_valid
     else:
         return X, y
+
+def categorize_UHI(df):
+    """
+    Convert UHI (continuous variable) to a categorical variable.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing the UHI column.
+
+    Returns:
+        new_df (pd.DataFrame): DataFrame with the UHI column converted to a categorical variable.
+    """
+    # copy df
+    new_df = df.copy()
+
+    # Define conditions for the buckets.
+    conditions = [
+        (new_df['UHI'] < 1),
+        (new_df['UHI'] == 1),
+        (new_df['UHI'] > 1)
+    ]
+
+    # Define the corresponding categorical values.
+    choices = ['cooler', 'same_as_mean', 'hotter']
+
+    # Use np.select to create a new categorical column.
+    new_df['UHI_category'] = np.select(conditions, choices, default='same_as_mean')
+
+    #drop UHI (continous var) column
+    new_df.drop('UHI', axis=1, inplace=True)
+
+    # reanme UHI_category to UHI
+    new_df.rename(columns={'UHI_category': 'UHI'}, inplace=True)
+
+    return new_df
