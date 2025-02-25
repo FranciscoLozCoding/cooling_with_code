@@ -7,6 +7,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import Lasso
 from sklearn.model_selection import KFold, GridSearchCV
+from sklearn.feature_selection import RFE
 import matplotlib.pyplot as plt
 import tools.preprocess
 
@@ -260,6 +261,60 @@ def plot_lasso_importance(lasso_df, title='Lasso Regression Feature Importance')
     plt.yticks(y_pos, lasso_df['feature'], fontsize=10)
     plt.xlabel('Absolute Coefficient')
     plt.title(title)
+    plt.tight_layout()
+    return plt
+
+def rfe_importance(X, y, estimator, n_features_to_select=1, step=1):
+    """
+    Calculate feature ranking using Recursive Feature Elimination (RFE).
+
+    Parameters:
+        X (pd.DataFrame): Feature matrix.
+        y (pd.Series): Target variable.
+        estimator: A fitted estimator (e.g., RandomForestRegressor, Lasso, etc.) used by RFE.
+        n_features_to_select (int, optional): Number of features to select; defaults to 1.
+        step (int, optional): Number of features to remove at each iteration; defaults to 1.
+
+    Returns:
+        pd.DataFrame: DataFrame with columns 'feature' and 'ranking', where a lower ranking indicates greater importance.
+    """
+    # Initialize and fit RFE on the provided data.
+    rfe = RFE(estimator, n_features_to_select=n_features_to_select, step=step)
+    rfe.fit(X, y)
+    
+    # rfe.ranking_ gives the rank of each feature (1 is the best)
+    ranking = rfe.ranking_
+    
+    # Create a DataFrame with the feature names and their corresponding rankings.
+    rfe_df = pd.DataFrame({
+        'feature': X.columns,
+        'ranking': ranking
+    })
+    
+    # Sort the DataFrame so that the best features (lowest ranking) come first.
+    rfe_df.sort_values('ranking', ascending=True, inplace=True)
+    return rfe_df
+
+def plot_rfe_importance(rfe_df, title='RFE Feature Importance'):
+    """
+    Plot the RFE feature ranking as a horizontal bar chart.
+    
+    Parameters:
+        rfe_df (pd.DataFrame): DataFrame from rfe_importance with columns 'feature' and 'ranking'.
+    
+    Returns:
+        matplotlib.pyplot: The plot object.
+    """
+    # Sort the DataFrame so that the best features (rank=1) appear at the top.
+    rfe_df = rfe_df.sort_values('ranking', ascending=True)
+    y_pos = np.arange(len(rfe_df))
+    
+    plt.figure(figsize=(10, 6))
+    plt.barh(y_pos, rfe_df['ranking'], align='center', color='blue')
+    plt.yticks(y_pos, rfe_df['feature'])
+    plt.xlabel('RFE Ranking (1 = Best)')
+    plt.title(title)
+    plt.gca().invert_yaxis()  # Best features on top
     plt.tight_layout()
     return plt
 
