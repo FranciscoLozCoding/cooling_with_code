@@ -5,21 +5,29 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.inspection import permutation_importance
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-import pandas as pd
-
-def load_and_prepare_data(filepath, scaler=None):
-    """Load and prepare dataset for analysis, optionally scaling features while preserving DataFrame format.
+def load_and_prepare_data(filepath, scaler=None, split=False, test_size=0.3, random_state=42):
+    """
+    Load and prepare dataset for analysis, optionally scaling features and splitting the dataset
+    while preserving DataFrame format.
 
     Parameters:
-    - filepath (str): Path to the CSV file.
-    - scaler (object, optional): A scaler instance (e.g., StandardScaler) with fit_transform or transform method.
-      If provided, the scaler will be applied to the features.
+        filepath (str): Path to the CSV file.
+        scaler (object, optional): A scaler instance (e.g., StandardScaler) with a transform or fit_transform method.
+                                    If provided, the scaler will be applied to the features.
+        split (bool, optional): If True, split the data into training and validation sets.
+        test_size (float, optional): Proportion of the dataset to include in the validation split (default 0.2).
+        random_state (int, optional): Random seed for reproducibility.
 
     Returns:
-    - X (pd.DataFrame): Features, optionally scaled.
-    - y (pd.Series): Target variable.
+        If split is False:
+            - X (pd.DataFrame): Features, optionally scaled.
+            - y (pd.Series): Target variable.
+        If split is True:
+            - X_train (pd.DataFrame), X_valid (pd.DataFrame): Training and validation features, optionally scaled.
+            - y_train (pd.Series), y_valid (pd.Series): Training and validation target variables.
     """
     print(f"Loading data from {filepath}")
     df = pd.read_csv(filepath)
@@ -40,7 +48,13 @@ def load_and_prepare_data(filepath, scaler=None):
         # Convert back to a DataFrame with original columns and index
         X = pd.DataFrame(scaled_values, columns=X.columns, index=X.index)
     
-    return X, y
+    if split:
+        X_train, X_valid, y_train, y_valid = train_test_split(
+            X, y, test_size=test_size, random_state=random_state
+        )
+        return X_train, X_valid, y_train, y_valid
+    else:
+        return X, y
 
 def get_feature_importance(X, y, n_estimators=100, random_state=42):
     """Calculate feature importance using Random Forest with UHI data"""
