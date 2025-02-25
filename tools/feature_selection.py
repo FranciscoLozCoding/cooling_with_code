@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import Lasso
+from sklearn.model_selection import KFold, GridSearchCV
 import matplotlib.pyplot as plt
 import tools.preprocess
 
@@ -193,38 +194,49 @@ def plot_perm_importance_comparison(perm_importance_50m, perm_importance_100m, p
 
     return plt
 
-def lasso_importance(X_train, y_train, alpha=0.01, random_state=42):
+def lasso_importance(X_train, y_train, alphas, cv_folds=5, random_state=42):
     """
-    Calculate Lasso regression feature importance. 
-    Make sure to scale the data before using this function.
-    
-    This function uses X_train to fit a Lasso regression,
-    and returns a DataFrame with each feature's coefficient and its absolute value.
-    
+    Calculate Lasso regression feature importance using GridSearchCV with KFold cross-validation.
+    Make sure to scale the features before using this function.
+
     Parameters:
         X (pd.DataFrame): Feature matrix.
         y (pd.Series): Target variable.
-        alpha (float, optional): Regularization strength (default 0.01).
+        alphas (array-like): List or array of alpha values to test.
+        cv_folds (int, optional): Number of folds for cross-validation (default is 5).
         random_state (int, optional): Random state for reproducibility.
-    
+
     Returns:
-        pd.DataFrame: DataFrame with columns 'feature', 'coefficient', 'abs_coef'
-                      sorted in ascending order of 'abs_coef'.
+        pd.DataFrame: DataFrame with columns 'feature', 'coefficient', and 'abs_coef'
+                      sorted in ascending order by 'abs_coef'.
     """
+    # Set up the parameter grid for alpha.
+    params = {"alpha": alphas}
     
-    # Fit Lasso regression
-    lasso = Lasso(alpha=alpha, random_state=random_state)
-    lasso.fit(X_train, y_train)
+    # Set up KFold cross-validation.
+    kf = KFold(n_splits=cv_folds, shuffle=True, random_state=random_state)
     
-    # Get coefficients and compute their absolute values
-    coefs = lasso.coef_
+    # Initialize Lasso with the given random state.
+    lasso = Lasso(random_state=random_state)
+    
+    # Perform grid search to find the best alpha.
+    grid = GridSearchCV(lasso, param_grid=params, cv=kf)
+    grid.fit(X_train, y_train)
+    
+    # Get the best estimator from grid search.
+    best_lasso = grid.best_estimator_
+    
+    # Extract coefficients.
+    coefs = best_lasso.coef_
+    
+    # Build a DataFrame for feature importance.
     lasso_df = pd.DataFrame({
         'feature': X_train.columns,
         'coefficient': coefs,
         'abs_coef': np.abs(coefs)
     })
     
-    # Sort the features by absolute coefficient value
+    # Sort features by absolute coefficient value.
     lasso_df.sort_values('abs_coef', ascending=True, inplace=True)
     return lasso_df
 
