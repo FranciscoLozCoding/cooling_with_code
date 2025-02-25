@@ -6,8 +6,10 @@ import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
 
+import pandas as pd
+
 def load_and_prepare_data(filepath, scaler=None):
-    """Load and prepare dataset for analysis, optionally scaling features.
+    """Load and prepare dataset for analysis, optionally scaling features while preserving DataFrame format.
 
     Parameters:
     - filepath (str): Path to the CSV file.
@@ -15,8 +17,8 @@ def load_and_prepare_data(filepath, scaler=None):
       If provided, the scaler will be applied to the features.
 
     Returns:
-    - X: Features (possibly scaled)
-    - y: Target variable
+    - X (pd.DataFrame): Features, optionally scaled.
+    - y (pd.Series): Target variable.
     """
     print(f"Loading data from {filepath}")
     df = pd.read_csv(filepath)
@@ -30,11 +32,12 @@ def load_and_prepare_data(filepath, scaler=None):
     
     # Scale features if a scaler is provided
     if scaler is not None:
-        # If the scaler is already fitted, use transform; otherwise, fit_transform will both fit and transform
         try:
-            X = scaler.transform(X)
+            scaled_values = scaler.transform(X)
         except Exception:
-            X = scaler.fit_transform(X)
+            scaled_values = scaler.fit_transform(X)
+        # Convert back to a DataFrame with original columns and index
+        X = pd.DataFrame(scaled_values, columns=X.columns, index=X.index)
     
     return X, y
 
