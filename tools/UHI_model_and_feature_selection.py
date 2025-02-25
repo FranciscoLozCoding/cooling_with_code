@@ -6,13 +6,13 @@ import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.inspection import permutation_importance
 import matplotlib.pyplot as plt
-import preprocess
+import tools.preprocess
 
 def load_and_prepare_data(filepath, scaler=None, split=False, test_size=0.3, random_state=42):
     """
     This function has been deprecated. Please use the load_and_prepare_data function from the preprocess module instead.
     """
-    return preprocess.load_and_prepare_data(filepath, scaler, split, test_size, random_state)
+    return tools.preprocess.load_and_prepare_data(filepath, scaler, split, test_size, random_state)
 
 def get_feature_importance(X, y, n_estimators=100, random_state=42):
     """Calculate feature importance using Random Forest with UHI data"""
