@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.inspection import permutation_importance
+from sklearn.linear_model import Lasso
 import matplotlib.pyplot as plt
 import tools.preprocess
 
@@ -190,6 +191,64 @@ def plot_perm_importance_comparison(perm_importance_50m, perm_importance_100m, p
     plt.legend(title='Buffer Zone', bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
 
+    return plt
+
+def lasso_importance(X_train, y, alpha=0.01, random_state=42):
+    """
+    Calculate Lasso regression feature importance. 
+    Make sure to scale the data before using this function.
+    
+    This function uses X_train to fit a Lasso regression,
+    and returns a DataFrame with each feature's coefficient and its absolute value.
+    
+    Parameters:
+        X (pd.DataFrame): Feature matrix.
+        y (pd.Series): Target variable.
+        alpha (float, optional): Regularization strength (default 0.01).
+        random_state (int, optional): Random state for reproducibility.
+    
+    Returns:
+        pd.DataFrame: DataFrame with columns 'feature', 'coefficient', 'abs_coef'
+                      sorted in ascending order of 'abs_coef'.
+    """
+    
+    # Fit Lasso regression
+    lasso = Lasso(alpha=alpha, random_state=random_state)
+    lasso.fit(X_train, y)
+    
+    # Get coefficients and compute their absolute values
+    coefs = lasso.coef_
+    lasso_df = pd.DataFrame({
+        'feature': X_train.columns,
+        'coefficient': coefs,
+        'abs_coef': np.abs(coefs)
+    })
+    
+    # Sort the features by absolute coefficient value
+    lasso_df.sort_values('abs_coef', ascending=True, inplace=True)
+    return lasso_df
+
+def plot_lasso_importance(lasso_df, title='Lasso Regression Feature Importance'):
+    """
+    Plot Lasso regression feature importance as a horizontal bar chart.
+    
+    Parameters:
+        lasso_df (pd.DataFrame): DataFrame returned by lasso_importance containing
+                                 'feature', 'coefficient', and 'abs_coef'.
+    
+    Returns:
+        matplotlib.pyplot: The plot object.
+    """
+    # Determine bar positions
+    y_pos = np.arange(len(lasso_df))
+    
+    # Create horizontal bar plot using absolute coefficient values.
+    plt.figure(figsize=(10, 6))
+    plt.barh(y_pos, lasso_df['abs_coef'], align='center', color='teal')
+    plt.yticks(y_pos, lasso_df['feature'], fontsize=10)
+    plt.xlabel('Absolute Coefficient')
+    plt.title(title)
+    plt.tight_layout()
     return plt
 
 def main():
