@@ -193,7 +193,7 @@ def plot_perm_importance_comparison(perm_importance_50m, perm_importance_100m, p
 
     return plt
 
-def lasso_importance(X_train, y, alpha=0.01, random_state=42):
+def lasso_importance(X_train, y_train, alpha=0.01, random_state=42):
     """
     Calculate Lasso regression feature importance. 
     Make sure to scale the data before using this function.
@@ -214,7 +214,7 @@ def lasso_importance(X_train, y, alpha=0.01, random_state=42):
     
     # Fit Lasso regression
     lasso = Lasso(alpha=alpha, random_state=random_state)
-    lasso.fit(X_train, y)
+    lasso.fit(X_train, y_train)
     
     # Get coefficients and compute their absolute values
     coefs = lasso.coef_
