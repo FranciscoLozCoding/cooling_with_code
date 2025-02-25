@@ -64,7 +64,7 @@ def categorize_UHI(df):
     
     Parameters:
         df (pd.DataFrame): DataFrame containing the UHI column.
-                
+
     Returns:
         new_df (pd.DataFrame): DataFrame with the UHI column converted to a categorical variable.
     """
@@ -87,11 +87,5 @@ def categorize_UHI(df):
     
     # Use np.select to create a new categorical column.
     new_df['UHI_category'] = np.select(conditions, choices, default='same_as_mean')
-    
-    # Drop the original continuous UHI column.
-    new_df.drop('UHI', axis=1, inplace=True)
-    
-    # Rename UHI_category to UHI.
-    new_df.rename(columns={'UHI_category': 'UHI'}, inplace=True)
     
     return new_df
