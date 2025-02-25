@@ -52,34 +52,46 @@ def load_and_prepare_data(filepath, scaler=None, split=False, test_size=0.3, ran
 
 def categorize_UHI(df):
     """
-    Convert UHI (continuous variable) to a categorical variable.
+    Convert UHI (continuous variable) to a categorical variable based on its distribution.
+    Values less than (mean - std) are categorized as 'cooler',
+    values between (mean - std) and (mean + std) are 'same_as_mean',
+    and values greater than (mean + std) are 'hotter'.
 
+    A UHI index value of 1.0 suggests the local temperature is the same as the mean temperature 
+    of all collected data points. UHI index values above 1.0 are consistent with hotspots above 
+    mean temperature values and UHI index values below 1.0 are consistent with cooler locations 
+    in the city.
+    
     Parameters:
         df (pd.DataFrame): DataFrame containing the UHI column.
-
+                
     Returns:
         new_df (pd.DataFrame): DataFrame with the UHI column converted to a categorical variable.
     """
-    # copy df
+    # Make a copy of the DataFrame.
     new_df = df.copy()
-
-    # Define conditions for the buckets.
+    
+    # Calculate the mean and standard deviation of UHI.
+    mean_uhi = new_df['UHI'].mean()
+    std_uhi = new_df['UHI'].std()
+    
+    # Define conditions based on one standard deviation from the mean.
     conditions = [
-        (new_df['UHI'] < 1),
-        (new_df['UHI'] == 1),
-        (new_df['UHI'] > 1)
+        (new_df['UHI'] < mean_uhi - std_uhi),
+        ((new_df['UHI'] >= mean_uhi - std_uhi) & (new_df['UHI'] <= mean_uhi + std_uhi)),
+        (new_df['UHI'] > mean_uhi + std_uhi)
     ]
-
-    # Define the corresponding categorical values.
+    
+    # Define the corresponding categories.
     choices = ['cooler', 'same_as_mean', 'hotter']
-
+    
     # Use np.select to create a new categorical column.
     new_df['UHI_category'] = np.select(conditions, choices, default='same_as_mean')
-
-    #drop UHI (continous var) column
+    
+    # Drop the original continuous UHI column.
     new_df.drop('UHI', axis=1, inplace=True)
-
-    # reanme UHI_category to UHI
+    
+    # Rename UHI_category to UHI.
     new_df.rename(columns={'UHI_category': 'UHI'}, inplace=True)
-
+    
     return new_df
