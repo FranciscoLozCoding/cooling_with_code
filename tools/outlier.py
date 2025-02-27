@@ -5,6 +5,8 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
+from sklearn.decomposition import PCA
+import matplotlib.patches as mpatches
 
 def univariate_outlier_analysis(df, dataset_name):
     """
@@ -61,3 +63,44 @@ def multivariate_outlier_analysis(df, dataset_name, contamination=0.05, random_s
     print(f"Detected {outlier_count} outliers ({(outlier_count / len(df_copy) * 100):.2f}% of total) in {dataset_name}")
     
     return df_copy
+
+def plot_multivariate_outliers(df, dataset_name, n_components=2):
+    """
+    Perform PCA on high-dimensional data and plot outliers in 2D.
+    
+    Parameters:
+        df (pd.DataFrame): DataFrame with an "Outlier" column (0 = normal, 1 = outlier).
+        dataset_name (str): Name of the dataset for visualization purposes.
+        n_components (int): Number of PCA components (default=2).
+    """
+    # Drop non-numeric columns and outlier column
+    df_numeric = df.select_dtypes(include=[np.number]).drop(columns=['Outlier'], errors='ignore')
+
+    # Perform PCA
+    pca = PCA(n_components=n_components)
+    pca_result = pca.fit_transform(df_numeric)
+
+    # Create a DataFrame with PCA results
+    df_pca = pd.DataFrame(pca_result, columns=[f'PC{i+1}' for i in range(n_components)])
+    df_pca['Outlier'] = df['Outlier'].values
+
+    # Scatter plot of PCA components
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(
+        x=df_pca['PC1'], 
+        y=df_pca['PC2'], 
+        hue=df_pca['Outlier'], 
+        palette={0: "blue", 1: "red"},
+        alpha=0.7
+    )
+    plt.xlabel("Principal Component 1")
+    plt.ylabel("Principal Component 2")
+    plt.title(f'PCA Visualization of {dataset_name} with Outliers')
+    
+    # Create custom legend handles.
+    handles = [mpatches.Patch(color="blue", label="Normal"),
+               mpatches.Patch(color="red", label="Outlier")]
+    plt.legend(handles=handles, title="Outlier", bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    plt.tight_layout()
+    plt.show()
