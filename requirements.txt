@@ -16,3 +16,4 @@ tqdm
 joblib
 pickle
 scikit-learn
+seaborn
