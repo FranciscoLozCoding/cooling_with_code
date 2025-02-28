@@ -1,4 +1,4 @@
-"""Outlier tools for the project."""
+"""This module includes outlier tools for the project."""
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import seaborn as sns

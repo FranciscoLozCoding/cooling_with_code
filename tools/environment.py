@@ -1,4 +1,4 @@
-'''This file is for defining global variables for the project.'''
+'''This module is for defining global variables for the project.'''
 
 # used for the defining the random state in models
 RANDOM_STATE=123

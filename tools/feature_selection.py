@@ -1,6 +1,4 @@
-"""
-Feature importance analysis across different buffer zones using actual UHI data
-"""
+"""This module contains tools for feature selection and importance analysis."""
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor

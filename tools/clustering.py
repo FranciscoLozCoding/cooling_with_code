@@ -1,4 +1,4 @@
-"""Clustering tools for the project."""
+"""This module contains clustering tools."""
 import pandas as pd
 import numpy as np
 import seaborn as sns

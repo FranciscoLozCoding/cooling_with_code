@@ -1,4 +1,4 @@
-"""Distribution tools for the project."""
+"""This module contains tools for analyzing feature distributions."""
 import matplotlib.pyplot as plt
 
 def plot_target_var_distribution(orginal_dataset, train_split, valid_split):

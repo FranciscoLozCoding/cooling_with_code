@@ -1,4 +1,4 @@
-"""Dataset Building tools for the project."""
+"""This moduel contains dataset building tools."""
 import numpy as np
 from scipy.interpolate import griddata
 from geopy.geocoders import GoogleV3
