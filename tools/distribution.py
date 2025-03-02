@@ -34,3 +34,35 @@ def plot_target_var_distribution(orginal_dataset, train_split, valid_split):
     plt.title('Distribution of UHI: Original, Training, and Validation Splits')
     plt.legend()
     return plt
+
+def plot_all_histograms(df, dataset_name, bins=50):
+    """
+    Plot histograms for all numerical features in a dataset.
+    
+    Parameters:
+        df (pd.DataFrame): The dataset containing numerical features.
+        dataset_name (str): Name of the dataset for the title.
+        bins (int): Number of bins for histograms.
+    """
+    num_cols = df.select_dtypes(include=['number']).columns  # Select only numerical columns
+    num_features = len(num_cols)
+    
+    # Define subplot grid size (auto-adjusting)
+    rows = (num_features // 4) + 1  # 4 histograms per row
+    fig, axes = plt.subplots(rows, 4, figsize=(15, rows * 4))  # Dynamic size
+    axes = axes.flatten()  # Flatten for easy iteration
+    
+    # Loop through each numerical column and plot histogram
+    for i, col in enumerate(num_cols):
+        axes[i].hist(df[col], bins=bins, color="steelblue", alpha=0.7)
+        axes[i].set_title(f"Histogram of {col}")
+        axes[i].set_xlabel(col)
+        axes[i].set_ylabel("Frequency")
+    
+    # Hide unused subplots
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+    
+    plt.suptitle(f"Histograms of Features in {dataset_name}", fontsize=16)
+    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Adjust layout to fit suptitle
+    return plt
