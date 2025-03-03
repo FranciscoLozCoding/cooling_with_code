@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from scipy.stats import skew
 from scipy.stats import boxcox
 from scipy.stats.mstats import winsorize
+from sklearn.preprocessing import StandardScaler
 
 def load_and_prepare_data(filepath, scaler=None, split=False, test_size=0.3, random_state=42):
     """
@@ -200,7 +201,7 @@ def load_and_preprocess_data(filepath, scaler=None, split=False, test_size=0.3, 
     Parameters:
         filepath (str): Path to the CSV file.
         scaler (object, optional): A scaler instance (e.g., StandardScaler) with a transform or fit_transform method.
-                                    If provided, the scaler will be applied to the features.
+                                    If provided, the scaler will be applied to the features. If not, a new StandardScaler will be used.
         split (bool, optional): If True, split the data into training and validation sets.
         test_size (float, optional): Proportion of the dataset to include in the validation split (default 0.2).
         random_state (int, optional): Random seed for reproducibility.
@@ -212,6 +213,7 @@ def load_and_preprocess_data(filepath, scaler=None, split=False, test_size=0.3, 
         If split is True:
             - X_train (pd.DataFrame), X_valid (pd.DataFrame): Training and validation features, optionally scaled.
             - y_train (pd.Series), y_valid (pd.Series): Training and validation target variables.
+        - scaler (object): The fitted scaler instance.
     """
     print(f"Loading data from {filepath}")
     df = pd.read_csv(filepath)
@@ -234,11 +236,14 @@ def load_and_preprocess_data(filepath, scaler=None, split=False, test_size=0.3, 
             scaled_values = scaler.fit_transform(X)
         # Convert back to a DataFrame with original columns and index
         X = pd.DataFrame(scaled_values, columns=X.columns, index=X.index)
+    else:
+        scaler = StandardScaler()
+        X = pd.DataFrame(scaler.fit_transform(X), columns=X.columns, index=X.index)
     
     if split:
         X_train, X_valid, y_train, y_valid = train_test_split(
             X, y, test_size=test_size, random_state=random_state
         )
-        return X_train, X_valid, y_train, y_valid
+        return X_train, X_valid, y_train, y_valid, scaler
     else:
-        return X, y
+        return X, y, scaler
