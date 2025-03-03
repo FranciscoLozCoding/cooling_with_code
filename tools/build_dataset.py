@@ -1,5 +1,6 @@
 """This moduel contains dataset building tools."""
 import numpy as np
+import os
 from scipy.interpolate import griddata
 from geopy.geocoders import GoogleV3
 import pandas as pd
@@ -525,3 +526,103 @@ def generate_building_gdf(building_csv_file="data/Building_Footprints_With_Add_A
     buildings_gdf.drop(columns=drop_cols,inplace=True)
 
     return buildings_gdf
+
+def generate_traffic(traffic_csv_file="data/Automated_Traffic_Volume_Counts.csv", lower_left=(40.75, -74.01), upper_right=(40.88, -73.86),
+                     padding=0.0015, boros=['Bronx', 'Manhattan'], geodecoded_file='data/grouped_traffic.csv', 
+                     drop_cols=["SegmentID", "RequestID", "WktGeom", "Direction", "toSt", 'Yr', 'M', 'D', 'HH', 'MM', 'datetime_str'],
+                     uhi_csv_file="data/Training_data_uhi_index.csv", GOOGLE_GEO_API_KEY=None):
+    """
+    Generate a GeoDataFrame of traffic volume data within a bounding box.
+
+    Parameters:
+        traffic_csv_file (str): Path to the CSV file containing traffic volume data.
+        lower_left (tuple): Lower-left corner of the bounding box (latitude, longitude).
+        upper_right (tuple): Upper-right corner of the bounding box (latitude, longitude).
+        padding (float): Padding around the bounding box to include more traffic locations.
+        boros (list): List of boroughs to include in the traffic data.
+        geodecoded_file (str): Path to the CSV file containing geocoded traffic data.
+        drop_cols (list): Columns to drop from the traffic GeoDataFrame.
+        uhi_csv_file (str): Path to the CSV file containing UHI data.
+        GOOGLE_GEO_API_KEY (str): Your Google Maps Geocoding API key.
+
+    Returns:
+        GeoDataFrame: A GeoDataFrame of traffic volume data within the bounding
+                      box combined with the UHI data.
+    """
+    # Load the traffic dataset
+    traffic_df = pd.read_csv(traffic_csv_file)
+
+    # Combine the columns and create a new datetime string column
+    traffic_df['datetime_str'] = (
+        traffic_df['Yr'].astype(str) + '-' +
+        traffic_df['M'].astype(str).str.zfill(2) + '-' +
+        traffic_df['D'].astype(str).str.zfill(2) + ' ' +
+        traffic_df['HH'].astype(str).str.zfill(2) + ':' +
+        traffic_df['MM'].astype(str).str.zfill(2) + ':00'
+    )
+
+    # Convert the datetime string column to a pandas datetime object
+    traffic_df['datetime'] = pd.to_datetime(traffic_df['datetime_str'], format='%Y-%m-%d %H:%M:%S')
+
+    # drop cols we don't need
+    traffic_df.drop(columns=drop_cols, inplace=True)
+
+    # Filter the GeoDataFrame to keep only the rows in boros
+    filtered_df = traffic_df[traffic_df['Boro'].isin(boros)]
+
+    # Now group the filtered data by 'Boro', 'street', and 'fromSt'
+    # and calculate the average volume for each group.
+    grouped_traffic_df = (
+        filtered_df.groupby(['Boro', 'street', 'fromSt'])['Vol']
+                .mean()
+                .reset_index(name='avg_vol')
+    )
+
+    #check if file was created already:
+    if os.path.isfile(geodecoded_file):
+        print('geodecoded_file already exists, loading it...')
+        grouped_traffic_df = pd.read_csv('data/grouped_traffic.csv')
+
+        # Convert the 'geometry' column from WKT strings to Shapely geometry objects.
+        grouped_traffic_df['geometry'] = grouped_traffic_df['geometry'].apply(wkt.loads)
+
+        traffic_gdf = gpd.GeoDataFrame(grouped_traffic_df, geometry='geometry', crs='EPSG:4326')
+    else:
+        print('geodecoded_file does not exist, creating it...')
+        # Apply the geocoding function to every row of the DataFrame
+        key = GOOGLE_GEO_API_KEY
+        grouped_traffic_df[['lat', 'lon']] = grouped_traffic_df.apply(lambda row: geocode_intersection_google(row, key), axis=1)
+
+        # convert the lat/lon values to a geometry column.
+        grouped_traffic_df['geometry'] = grouped_traffic_df.apply(lambda row: Point(row['lon'], row['lat']), axis=1)
+
+        # Convert the DataFrame into a GeoDataFrame.
+        traffic_gdf = gpd.GeoDataFrame(grouped_traffic_df, geometry='geometry', crs='EPSG:4326')
+
+        # Save to csv file
+        grouped_traffic_df.to_csv("data/grouped_traffic.csv", index=False)
+
+    # filter the traffic GeoDataFrame based on the bounding box we are using for the City
+    traffic_gdf = traffic_gdf[
+        (traffic_gdf.geometry.y >= lower_left[0] + padding) &
+        (traffic_gdf.geometry.y <= upper_right[0] - padding) &
+        (traffic_gdf.geometry.x >= lower_left[1] + padding) &
+        (traffic_gdf.geometry.x <= upper_right[1] - padding)
+    ]
+
+    # filter out any traffic locations that have a traffic volume of 0
+    traffic_gdf = traffic_gdf[traffic_gdf['avg_vol'] != 0]
+
+    # Load the UHI dataset
+    uhi_df = pd.read_csv(uhi_csv_file)
+
+    # Create a geometry column from the Longitude and Latitude columns
+    uhi_df['geometry'] = uhi_df.apply(lambda row: Point(row['Longitude'], row['Latitude']), axis=1)
+
+    # Convert the DataFrame into a GeoDataFrame with EPSG:4326 (WGS84)
+    uhi_gdf = gpd.GeoDataFrame(uhi_df, geometry='geometry', crs='EPSG:4326')
+
+    #apply nearest interpolation
+    uhi_gdf = interpolate_traffic_volume(uhi_gdf, traffic_gdf, method='nearest')
+
+    return uhi_gdf
