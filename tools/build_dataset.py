@@ -12,6 +12,9 @@ import pyproj
 from shapely.geometry import Point
 from shapely.ops import transform
 from geopy.distance import geodesic
+import pystac_client
+import planetary_computer
+from odc.stac import stac_load
 
 def interpolate_traffic_volume(uhi_gdf, traffic_gdf, method='nearest'):
   """
@@ -412,3 +415,78 @@ def assign_weather_data_avg(row, weather_manhattan, weather_bronx):
         'Wind Direction [degrees]': weather_avg['Wind Direction [degrees]'],
         'Solar Flux [W/m^2]': weather_avg['Solar Flux [W/m^2]']
     })
+
+def generate_median(lower_left=(40.75, -74.01), upper_right=(40.88, -73.86), time_window="2021-06-01/2021-09-01", resolution=5, degrees=111320.0):
+    """
+    Generate a median composite of Sentinel-2 bands and calculate spectral indices.
+
+    Parameters:
+        lower_left (tuple): Lower-left corner of the bounding box (latitude, longitude).
+        upper_right (tuple): Upper-right corner of the bounding box (latitude, longitude).
+        time_window (str): Time window for searching Sentinel-2 data.
+        resolution (int): Pixel resolution in meters.
+        degrees (float): Number of meters per degree of latitude.
+    """
+    # Calculate the bounds for doing an archive data search
+    # bounds = (min_lon, min_lat, max_lon, max_lat)
+    bounds = (lower_left[1], lower_left[0], upper_right[1], upper_right[0])
+
+    # search for images from the Planetary Computer STAC API
+    stac = pystac_client.Client.open("https://planetarycomputer.microsoft.com/api/stac/v1")
+    search = stac.search(
+        bbox=bounds,
+        datetime=time_window,
+        collections=["sentinel-2-l2a"],
+        query={"eo:cloud_cover": {"lt": 20}},
+    )
+    items = list(search.get_items())
+    print('This is the number of scenes that touch our region:',len(items))
+
+    # Define the pixel resolution for the final product
+    # Define the scale according to our selected crs, so we will use degrees
+    signed_items = [planetary_computer.sign(item).to_dict() for item in items]
+    scale = resolution / degrees # degrees per pixel for crs=4326
+
+    # Load the data
+    data = stac_load(
+        items,
+        bands=["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12"],
+        crs="EPSG:4326", # Latitude-Longitude
+        resolution=scale, # Degrees
+        chunks={"x": 2048, "y": 2048},
+        dtype="uint16",
+        patch_url=planetary_computer.sign,
+        bbox=bounds
+    )
+
+    #compute median
+    median = data.median(dim="time").compute()
+
+    # Calculate NDVI for the median composite
+    ndvi_median = (median.B08-median.B04)/(median.B08+median.B04)
+
+    # Calculate NDBI for the median composite
+    ndbi_median = (median.B11-median.B08)/(median.B11+median.B08)
+
+    # Calculate NDWI for the median composite
+    ndwi_median = (median.B03-median.B08)/(median.B03+median.B08)
+
+    # Calculate SI for the median composite
+    si_median = (median.B11 - median.B04)/(median.B11 + median.B04)
+
+    # Calculate NDMI for the median composite
+    ndmi_median = (median.B08 - median.B11)/(median.B08 + median.B11)
+
+    # Calculate NPCRI for the median composite
+    npcri_median = (median.B04 - median.B02) / (median.B04 + median.B02)
+
+    # Add indices to the dataset
+    median['NDVI'] = (['latitude', 'longitude'], ndvi_median.values)
+    median['NDBI'] = (['latitude', 'longitude'], ndbi_median.values)
+    median['NDWI'] = (['latitude', 'longitude'], ndwi_median.values)
+    median['SI'] = (['latitude', 'longitude'], si_median.values)
+    median['NDMI'] = (['latitude', 'longitude'], ndmi_median.values)
+    median['NPCRI'] = (['latitude', 'longitude'], npcri_median.values)
+    median['Coastal_Aerosol'] = (['latitude', 'longitude'], median.B01.values)
+
+    return median
