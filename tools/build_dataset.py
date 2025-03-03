@@ -490,3 +490,38 @@ def generate_median(lower_left=(40.75, -74.01), upper_right=(40.88, -73.86), tim
     median['Coastal_Aerosol'] = (['latitude', 'longitude'], median.B01.values)
 
     return median
+
+def generate_building_gdf(building_csv_file="data/Building_Footprints_With_Add_Attr.csv", lower_left=(40.75, -74.01), 
+                          upper_right=(40.88, -73.86), padding=0.0015, 
+                          drop_cols=["NAME","BIN","LSTMODDATE", "LSTSTATYPE", "DOITT_ID","FEAT_CODE", 
+                                     "SHAPE_AREA", "SHAPE_LEN", "BASE_BBL", "MPLUTO_BBL", "GEOMSOURCE","GLOBALID"]):
+    """
+    Generate a GeoDataFrame of building footprints within a bounding box.
+
+    Parameters:
+        building_csv_file (str): Path to the CSV file containing building footprints.
+        lower_left (tuple): Lower-left corner of the bounding box (latitude, longitude).
+        upper_right (tuple): Upper-right corner of the bounding box (latitude, longitude).
+        padding (float): Padding around the bounding box to include more buildings.
+        drop_cols (list): Columns to drop from the GeoDataFrame.
+
+    Returns:
+        GeoDataFrame: A GeoDataFrame of building footprints within the bounding
+                      box with the specified columns dropped.
+    """
+    # Load the building footprints from the CSV file
+    buildings_gdf = load_building_footprints_csv(building_csv_file)
+
+    # Compute the centroid for each building polygon.
+    # Then filter the bldg GeoDataFrame based on the bounding box we are using for the City
+    buildings_gdf = buildings_gdf[
+        (buildings_gdf.geometry.centroid.y >= lower_left[0] + padding) &
+        (buildings_gdf.geometry.centroid.y <= upper_right[0] - padding) &
+        (buildings_gdf.geometry.centroid.x >= lower_left[1] + padding) &
+        (buildings_gdf.geometry.centroid.x <= upper_right[1] - padding)
+    ]
+
+    #drop cols we dont need
+    buildings_gdf.drop(columns=drop_cols,inplace=True)
+
+    return buildings_gdf
