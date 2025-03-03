@@ -6,6 +6,7 @@ from geopy.geocoders import GoogleV3
 import pandas as pd
 import geopandas as gpd
 import shapely
+import shapely.vectorized
 from shapely import wkt
 from tqdm import tqdm
 from joblib import Parallel, delayed
