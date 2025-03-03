@@ -626,3 +626,37 @@ def generate_traffic(traffic_csv_file="data/Automated_Traffic_Volume_Counts.csv"
     uhi_gdf = interpolate_traffic_volume(uhi_gdf, traffic_gdf, method='nearest')
 
     return uhi_gdf
+
+def generate_weather_data(buffer_df, manhattan_weather_csv='data/NY_Mesonet_Weather_Manhattan.csv', bronx_weather_csv='data/NY_Mesonet_Weather_Bronx.csv'):
+    """
+    Generate weather data for the buffer points.
+
+    Parameters:
+        buffer_df (DataFrame): DataFrame containing buffer points with 'Latitude' and 'Longitude' columns.
+        manhattan_weather_csv (str): Path to the CSV file containing Manhattan weather data.
+        bronx_weather_csv (str): Path to the CSV file containing Bronx weather data.
+
+    Returns:
+        DataFrame: DataFrame with weather data assigned to the
+                   buffer points based on the closest weather station.
+    """
+    # Read the weather data for both counties
+    weather_manhattan = pd.read_csv(manhattan_weather_csv)
+    weather_bronx = pd.read_csv(bronx_weather_csv)
+
+    # Parse out EDT, since both datasets with data time are in the same time zone
+    weather_manhattan['Date / Time'] = weather_manhattan['Date / Time'].str.replace(' EDT', '')
+    weather_bronx['Date / Time'] = weather_bronx['Date / Time'].str.replace(' EDT', '')
+
+    # Convert the "Date / Time" column to datetime
+    weather_manhattan['Date / Time'] = pd.to_datetime(weather_manhattan['Date / Time'])
+    weather_bronx['Date / Time'] = pd.to_datetime(weather_bronx['Date / Time'])
+
+    #average the weather variables
+    buffer_df[['Air Temp at Surface [degC]',
+            'Relative Humidity [percent]',
+            'Avg Wind Speed [m/s]',
+            'Wind Direction [degrees]',
+            'Solar Flux [W/m^2]']] = buffer_df.apply(lambda row: assign_weather_data_avg(row, weather_manhattan, weather_bronx), axis=1)
+    
+    return buffer_df
