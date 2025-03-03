@@ -2,6 +2,9 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+from scipy.stats import skew
+from scipy.stats import boxcox
+from scipy.stats.mstats import winsorize
 
 def load_and_prepare_data(filepath, scaler=None, split=False, test_size=0.3, random_state=42):
     """
@@ -90,3 +93,101 @@ def categorize_UHI(df):
     new_df['UHI_category'] = np.select(conditions, choices, default='same_as_mean')
     
     return new_df
+
+# create preprocessing function
+def preprocess_data(df):
+  """
+  Preprocess the input buffer dataset.
+
+  Parameters:
+      df (pd.DataFrame): The input buffer dataset.
+
+  Returns:
+      pd.DataFrame: The preprocessed dataset.
+  """
+  # Convert wind direction from degrees to radians
+  df["Wind Direction [radians]"] = np.radians(df["Wind Direction [degrees]"])
+
+  # Compute sine and cosine for directional components
+  df["Wind_X"] = np.sin(df["Wind Direction [radians]"])  # East-West wind component
+  df["Wind_Y"] = np.cos(df["Wind Direction [radians]"])  # North-South wind component
+
+  # Interaction: Building Height * Wind Speed * Wind Direction
+  df["Building_Wind_X"] = df["Building_Height"] * df["Avg Wind Speed [m/s]"] * df["Wind_X"]
+  df["Building_Wind_Y"] = df["Building_Height"] * df["Avg Wind Speed [m/s]"] * df["Wind_Y"]
+
+  # Interaction: Elevation * Wind Speed * Wind Direction
+  df["Elevation_Wind_X"] = df["Ground_Elevation"] * df["Avg Wind Speed [m/s]"] * df["Wind_X"]
+  df["Elevation_Wind_Y"] = df["Ground_Elevation"] * df["Avg Wind Speed [m/s]"] * df["Wind_Y"]
+
+  # Interaction: Building count * height
+  df["BldgHeight_Count"] = df["Building_Height"] * df["Building_Count"]
+    
+  # Interaction: Urbanization vs Vegetation
+  df["BuildingDensity_NDVI"] = df["Building_Density"] * df["NDVI"]
+  df["TotalBuildingArea_NDVI"] = df["Total_Building_Area_m2"] * df["NDVI"]
+  df["Traffic_NDVI"] = df["Traffic_Volume"] * df["NDVI"]
+
+  # Interaction: Climate interactions w/ urbanization
+  df["Temp_BuildingDensity"] = df["Air Temp at Surface [degC]"] * df["Building_Density"]
+
+  # Interaction: Humidity vs Vegetation
+  df["Humidity_NDVI"] = df["Relative Humidity [percent]"] * df["NDVI"]
+  df["Humidity_NDMI"] = df["Relative Humidity [percent]"] * df["NDMI"]
+
+  # Interaction: Traffic & Built Environment
+  df["Traffic_NDBI"] = df["Traffic_Volume"] * df["NDBI"]
+  df["Traffic_BuildingDensity"] = df["Traffic_Volume"] * df["Building_Density"]
+
+  # Interaction: Age of Buildings
+  df["BuildingAge_Temp"] = df["Building_Construction_Year"] * df["Air Temp at Surface [degC]"]
+
+  return df
+
+def apply_winsorization(df, limits=(0.01, 0.01)):
+    """
+    Apply Winsorization to all numerical columns in a DataFrame.
+
+    Parameters:
+        df (pd.DataFrame): The dataset containing numerical features.
+        limits (tuple): The lower and upper quantile limits for Winsorization.
+
+    Returns:
+        pd.DataFrame: The Winsorized dataset.
+    """
+    df_winsorized = df.copy()  # Create a copy to avoid modifying original data
+    
+    # Apply Winsorization to all numeric columns
+    for col in df_winsorized.select_dtypes(include=['number']).columns:
+        df_winsorized[col] = winsorize(df_winsorized[col], limits=limits)
+
+    return df_winsorized
+
+def apply_boxcox_transformation(df, threshold, exclude_cols=[]):
+    """
+    Apply Box-Cox transformation to specified DataFrame based on skew threshold.
+
+    Parameters:
+        df (pd.DataFrame): The dataset containing numerical features.
+        threshold (float): The absolute value of the skew threshold.
+        exclude_cols (list): List of column names to exclude from transformation.
+
+    Returns:
+        pd.DataFrame: The dataset with Box-Cox transformed columns.
+    """
+    df_transformed = df.copy()  # Create a copy to avoid modifying original data
+
+    # get cols to apply transformation
+    boxcox_cols = [col for col in df_transformed.columns if abs(skew(df_transformed[col])) > threshold]
+    if exclude_cols:
+        boxcox_cols = [col for col in boxcox_cols if col not in exclude_cols]
+    
+    for col in boxcox_cols:
+        # Ensure all values are positive before applying Box-Cox
+        if (df_transformed[col] <= 0).any():
+            df_transformed[col] += abs(df_transformed[col].min()) + 1  # Shift to positive
+
+        # Apply Box-Cox transformation
+        df_transformed[col], _ = boxcox(df_transformed[col])
+
+    return df_transformed
