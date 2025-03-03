@@ -1,4 +1,4 @@
-"""This moduel contains dataset building tools."""
+"""This module contains dataset building tools."""
 import numpy as np
 import os
 from scipy.interpolate import griddata
