@@ -40,7 +40,7 @@ class Explainer:
         self.feature_names = feature_names
         self.explainer = explainer_type(model)  # Initialize explainer
         self.shap_values = self.explainer.shap_values(self.X)  # Compute SHAP values
-        shap.initjs()  # Initialize SHAP for Jupyter Notebook
+        self.init_js()  # Initialize SHAP for Jupyter Notebook
 
     def summary_plot(self):
         """Generates a SHAP summary plot showing global feature importance."""
@@ -67,3 +67,7 @@ class Explainer:
         - index (int): The index of the observation of interest.
         """
         return shap.force_plot(self.explainer.expected_value, self.shap_values[index, :], self.X.iloc[index, :])
+    
+    def init_js(self):
+        """Initializes SHAP for Jupyter Notebook."""
+        shap.initjs()
