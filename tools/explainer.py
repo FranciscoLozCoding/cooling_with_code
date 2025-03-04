@@ -87,4 +87,4 @@ def shap_force_plot(explainer, shap_values, X, index=0):
     shap_force_plot(explainer, shap_values, X_valid_selected_df, instance_index=0)
     """
     shap.initjs()
-    shap.force_plot(explainer.expected_value, shap_values[index,:], X.iloc[index,:])
+    return shap.force_plot(explainer.expected_value, shap_values[index,:], X.iloc[index,:])
