@@ -73,7 +73,7 @@ def shap_dependence_plot(feature_name, shap_values, X):
     """
     shap.dependence_plot(feature_name, shap_values, X)
 
-def shap_force_plot(explainer, shap_values, X, instance_index=0):
+def shap_force_plot(explainer, shap_values, X, index=0):
     """
     Generates a SHAP force plot for a single prediction instance.
     
@@ -81,10 +81,10 @@ def shap_force_plot(explainer, shap_values, X, instance_index=0):
     - explainer: SHAP explainer used to generate shap_values.
     - shap_values: SHAP values computed from an explainer.
     - X: Data (Pandas DataFrame) with feature names.
-    - instance_index: The row index of the instance to visualize.
+    - index (int): The index of the observation of interest.
     
     Example Usage:
     shap_force_plot(explainer, shap_values, X_valid_selected_df, instance_index=0)
     """
     shap.initjs()
-    shap.force_plot(explainer.expected_value, shap_values[instance_index], X.iloc[instance_index])
+    shap.force_plot(explainer.expected_value, shap_values[index,:], X.iloc[index,:])
