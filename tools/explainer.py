@@ -13,6 +13,10 @@ def apply_shap(model, explainer_type, X, feature_names):
     - explainer_type: SHAP explainer class (e.g., shap.TreeExplainer, shap.KernelExplainer).
     - X: Data (must be a Pandas DataFrame) to compute SHAP values.
     - feature_names: List of feature names.
+
+    Returns:
+    - shap_values: SHAP values computed from the explainer.
+    - explainer: SHAP explainer object.
         
     Example Usage:
     apply_shap(best_model, shap.TreeExplainer, X_valid_selected_df, selected_feature_names)
@@ -27,7 +31,7 @@ def apply_shap(model, explainer_type, X, feature_names):
     # Compute SHAP values
     shap_values = explainer.shap_values(X_df)
 
-    return shap_values
+    return shap_values, explainer
 
 def shap_summary_plot(shap_values, X):
     """
