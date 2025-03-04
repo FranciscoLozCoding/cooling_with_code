@@ -121,11 +121,6 @@ def preprocess_data(df):
   df["Elevation_Wind_X"] = df["Ground_Elevation"] * df["Avg Wind Speed [m/s]"] * df["Wind_X"]
   df["Elevation_Wind_Y"] = df["Ground_Elevation"] * df["Avg Wind Speed [m/s]"] * df["Wind_Y"]
 
-  # interaction: Urban Canyon effect, remove if lowers performance TODO
-  df["Urban_Canyon"] = df["Building_Height"] * df["Ground_Elevation"]
-  df["Urban_Canyon_Wind_X"] = df["Urban_Canyon"] * df["Avg Wind Speed [m/s]"] * df["Wind_X"]
-  df["Urban_Canyon_Wind_Y"] = df["Urban_Canyon"] * df["Avg Wind Speed [m/s]"] * df["Wind_Y"]
-
   # Interaction: Building count * height
   df["BldgHeight_Count"] = df["Building_Height"] * df["Building_Count"]
     
