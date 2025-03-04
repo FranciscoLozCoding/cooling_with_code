@@ -4,87 +4,66 @@ import shap
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def apply_shap(model, explainer_type, X, feature_names):
+class Explainer:
     """
-    Applies SHAP to any trained model and generates visualizations.
+    A class for SHAP-based model explanation.
     
-    Parameters:
+    Attributes:
     - model: Trained model (e.g., RandomForestRegressor, XGBRegressor).
     - explainer_type: SHAP explainer class (e.g., shap.TreeExplainer, shap.KernelExplainer).
-    - X: Data (must be a Pandas DataFrame) to compute SHAP values.
+    - X: Data (Pandas DataFrame) used to compute SHAP values.
     - feature_names: List of feature names.
+    - explainer: SHAP explainer instance.
+    - shap_values: Computed SHAP values.
 
-    Returns:
-    - shap_values: SHAP values computed from the explainer.
-    - explainer: SHAP explainer object.
+    Methods:
+    - apply_shap(): Computes SHAP values.
+    - summary_plot(): Generates a SHAP summary plot.
+    - bar_plot(): Generates a bar chart of feature importance.
+    - dependence_plot(): Generates a dependence plot for a feature.
+    - force_plot(): Generates a force plot for an individual prediction.
+    """
+
+    def __init__(self, model, explainer_type, X, feature_names):
+        """
+        Initializes the Explainer with a trained model, explainer type, and dataset.
         
-    Example Usage:
-    apply_shap(best_model, shap.TreeExplainer, X_valid_selected_df, selected_feature_names)
-    """
-    
-    # Ensure X is a DataFrame
-    X_df = pd.DataFrame(X, columns=feature_names)
+        Parameters:
+        - model: Trained model (e.g., RandomForestRegressor, XGBRegressor).
+        - explainer_type: SHAP explainer class (e.g., shap.TreeExplainer, shap.KernelExplainer).
+        - X: Data (Pandas DataFrame) used to compute SHAP values.
+        - feature_names: List of feature names.
+        """
+        self.model = model
+        self.explainer_type = explainer_type
+        self.X = pd.DataFrame(X, columns=feature_names)  # Ensure DataFrame format
+        self.feature_names = feature_names
+        self.explainer = explainer_type(model)  # Initialize explainer
+        self.shap_values = self.explainer.shap_values(self.X)  # Compute SHAP values
+        shap.initjs()  # Initialize SHAP for Jupyter Notebook
 
-    # Initialize SHAP Explainer
-    explainer = explainer_type(model)
-    
-    # Compute SHAP values
-    shap_values = explainer.shap_values(X_df)
+    def summary_plot(self):
+        """Generates a SHAP summary plot showing global feature importance."""
+        shap.summary_plot(self.shap_values, self.X)
 
-    return shap_values, explainer
+    def bar_plot(self):
+        """Generates a bar plot showing overall feature importance rankings."""
+        shap.summary_plot(self.shap_values, self.X, plot_type="bar")
 
-def shap_summary_plot(shap_values, X):
-    """
-    Generates a SHAP summary plot showing global feature importance.
-    
-    Parameters:
-    - shap_values: SHAP values computed from an explainer.
-    - X: Data (Pandas DataFrame) with feature names.
-    
-    Example Usage:
-    shap_summary_plot(shap_values, X_valid_selected_df)
-    """
-    shap.summary_plot(shap_values, X)
+    def dependence_plot(self, feature_name):
+        """
+        Generates a SHAP dependence plot for a given feature.
+        
+        Parameters:
+        - feature_name (str): The feature to analyze.
+        """
+        shap.dependence_plot(feature_name, self.shap_values, self.X)
 
-def shap_bar_plot(shap_values, X):
-    """
-    Generates a bar plot showing overall feature importance rankings.
-    
-    Parameters:
-    - shap_values: SHAP values computed from an explainer.
-    - X: Data (Pandas DataFrame) with feature names.
-    
-    Example Usage:
-    shap_bar_plot(shap_values, X_valid_selected_df)
-    """
-    shap.summary_plot(shap_values, X, plot_type="bar")
-
-def shap_dependence_plot(feature_name, shap_values, X):
-    """
-    Generates a SHAP dependence plot for a given feature.
-
-    Parameters:
-    - feature_name: The name of the feature to plot.
-    - shap_values: SHAP values computed from an explainer.
-    - X: Data (Pandas DataFrame) with feature names.
-    
-    Example Usage:
-    shap_dependence_plot("Building Height", shap_values, X_valid_selected_df)
-    """
-    shap.dependence_plot(feature_name, shap_values, X)
-
-def shap_force_plot(explainer, shap_values, X, index=0):
-    """
-    Generates a SHAP force plot for a single prediction instance.
-    
-    Parameters:
-    - explainer: SHAP explainer used to generate shap_values.
-    - shap_values: SHAP values computed from an explainer.
-    - X: Data (Pandas DataFrame) with feature names.
-    - index (int): The index of the observation of interest.
-    
-    Example Usage:
-    shap_force_plot(explainer, shap_values, X_valid_selected_df, instance_index=0)
-    """
-    shap.initjs()
-    return shap.force_plot(explainer.expected_value, shap_values[index,:], X.iloc[index,:])
+    def force_plot(self, index=0):
+        """
+        Generates a SHAP force plot for a single prediction instance.
+        
+        Parameters:
+        - index (int): The index of the observation of interest.
+        """
+        return shap.force_plot(self.explainer.expected_value, self.shap_values[index, :], self.X.iloc[index, :])
