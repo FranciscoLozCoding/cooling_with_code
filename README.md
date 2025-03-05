@@ -99,3 +99,5 @@ The following datasets will be used to develop the model:
 - Automated Traffic Volume Counts
    - Description: New York City Department of Transportation (NYC DOT) uses Automated Traffic Recorders (ATR) to collect traffic sample volume counts at bridge crossings and roadways.These counts do not cover the entire year, and the number of days counted per location may vary from year to year.
    - Data Host: [NYC Open Data](https://data.cityofnewyork.us/Transportation/Automated-Traffic-Volume-Counts/7ym2-wayt)
+- Predicting urban Heat Island in European cities: A comparative study of GRU, DNN, and ANN models using urban morphological variables
+   - https://doi.org/10.1016/j.uclim.2024.102061 
