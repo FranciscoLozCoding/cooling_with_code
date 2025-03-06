@@ -64,6 +64,7 @@ The following datasets will be used to develop the model:
 
 1. https://youtu.be/R66yFI8sWi0 
 2. https://youtu.be/iaMCGXgNhc0
+3. https://youtu.be/xFb1rXLsXTo 
 
 # References: 
 - New York City UHI Index
