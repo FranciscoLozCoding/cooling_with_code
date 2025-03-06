@@ -8,13 +8,13 @@ from scipy.stats.mstats import winsorize
 from sklearn.preprocessing import StandardScaler
 from tools.environment import BUFFER_DISTANCES, TARGET_VARIABLE
 
-def load_and_prepare_data(filepath, scaler=None, split=False, test_size=0.3, random_state=42):
+def load_and_prepare_data(data, scaler=None, split=False, test_size=0.3, random_state=42):
     """
     Load and prepare dataset for analysis, optionally scaling features and splitting the dataset
     while preserving DataFrame format.
 
     Parameters:
-        filepath (str): Path to the CSV file.
+        data (str or pd.DataFrame): Path to the CSV file or a Pandas DataFrame.
         scaler (object, optional): A scaler instance (e.g., StandardScaler) with a transform or fit_transform method.
                                     If provided, the scaler will be applied to the features.
         split (bool, optional): If True, split the data into training and validation sets.
@@ -29,8 +29,15 @@ def load_and_prepare_data(filepath, scaler=None, split=False, test_size=0.3, ran
             - X_train (pd.DataFrame), X_valid (pd.DataFrame): Training and validation features, optionally scaled.
             - y_train (pd.Series), y_valid (pd.Series): Training and validation target variables.
     """
-    print(f"Loading data from {filepath}")
-    df = pd.read_csv(filepath)
+    # Load data if a file path is provided
+    if isinstance(data, str):
+        print(f"Loading data from {data}")
+        df = pd.read_csv(data)
+    elif isinstance(data, pd.DataFrame):
+        print("Using provided DataFrame.")
+        df = data.copy()
+    else:
+        raise ValueError("Invalid input: `data` must be a file path (str) or a Pandas DataFrame.")
     
     # Separate features and target
     y = df['UHI']
@@ -194,13 +201,13 @@ def apply_boxcox_transformation(df, threshold, exclude_cols=[]):
 
     return df_transformed
 
-def load_and_preprocess_data(filepath, scaler=None, split=False, test_size=0.3, random_state=42):
+def load_and_preprocess_data(data, scaler=None, split=False, test_size=0.3, random_state=42):
     """
     Load and preprocess dataset for analysis, optionally scaling features and splitting the dataset
     while preserving DataFrame format.
 
     Parameters:
-        filepath (str): Path to the CSV file.
+        data (str or pd.DataFrame): Path to the CSV file or a Pandas DataFrame.
         scaler (object, optional): A scaler instance (e.g., StandardScaler) with a transform or fit_transform method.
                                     If provided, the scaler will be applied to the features. If not, a new StandardScaler will be used.
         split (bool, optional): If True, split the data into training and validation sets.
@@ -216,8 +223,15 @@ def load_and_preprocess_data(filepath, scaler=None, split=False, test_size=0.3, 
             - y_train (pd.Series), y_valid (pd.Series): Training and validation target variables.
         - scaler (object): The fitted scaler instance.
     """
-    print(f"Loading data from {filepath}")
-    df = pd.read_csv(filepath)
+    # Load data if a file path is provided
+    if isinstance(data, str):
+        print(f"Loading data from {data}")
+        df = pd.read_csv(data)
+    elif isinstance(data, pd.DataFrame):
+        print("Using provided DataFrame.")
+        df = data.copy()
+    else:
+        raise ValueError("Invalid input: `data` must be a file path (str) or a Pandas DataFrame.")
 
     #preprocess data
     df = preprocess_data(df)
