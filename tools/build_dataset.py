@@ -678,7 +678,8 @@ def combine_buffer_datasets(train_path, test_path, buffer_distances=BUFFER_DISTA
 
     train_combined = []
     test_combined = []
-    shared_columns = ['Longitude', 'Latitude', TARGET_VARIABLE]
+    train_shared_columns = [TARGET_VARIABLE]
+    test_shared_columns = ['Longitude', 'Latitude']
 
     for buffer_dist in buffer_distances:
         train_file_path = f'{train_path}/{buffer_dist}m_buffer_dataset.csv'
@@ -691,10 +692,10 @@ def combine_buffer_datasets(train_path, test_path, buffer_distances=BUFFER_DISTA
 
             # Keep shared columns only once
             if not train_combined:
-                train_combined.append(train_data[shared_columns])
+                train_combined.append(train_data[train_shared_columns])
 
             # Rename features by adding buffer prefix (excluding shared columns)
-            renamed_train_data = train_data.drop(columns=shared_columns).add_prefix(f"{buffer_dist}m_")
+            renamed_train_data = train_data.drop(columns=train_shared_columns).add_prefix(f"{buffer_dist}m_")
             train_combined.append(renamed_train_data)
         else:
             print(f"Warning: Training file not found for {buffer_dist}m buffer.")
@@ -706,10 +707,10 @@ def combine_buffer_datasets(train_path, test_path, buffer_distances=BUFFER_DISTA
 
             # Keep shared columns only once
             if not test_combined:
-                test_combined.append(test_data[shared_columns])
+                test_combined.append(test_data[test_shared_columns])
 
             # Rename features by adding buffer prefix (excluding shared columns)
-            renamed_test_data = test_data.drop(columns=shared_columns).add_prefix(f"{buffer_dist}m_")
+            renamed_test_data = test_data.drop(columns=test_shared_columns).add_prefix(f"{buffer_dist}m_")
             test_combined.append(renamed_test_data)
         else:
             print(f"Warning: Test file not found for {buffer_dist}m buffer.")
