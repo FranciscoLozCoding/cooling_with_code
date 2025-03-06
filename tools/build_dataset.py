@@ -663,7 +663,7 @@ def generate_weather_data(buffer_df, manhattan_weather_csv='data/NY_Mesonet_Weat
     
     return buffer_df
 
-def load_and_combine_data():
+def combine_buffer_datasets():
     """Load all buffer datasets for both train and test sets, merging by row index."""
 
     train_combined = []
