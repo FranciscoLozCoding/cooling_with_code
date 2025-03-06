@@ -683,7 +683,7 @@ def combine_buffer_datasets(train_path, test_path, buffer_distances=BUFFER_DISTA
 
     for buffer_dist in buffer_distances:
         train_file_path = f'{train_path}/{buffer_dist}m_buffer_dataset.csv'
-        test_file_path = f'{test_path}/{buffer_dist}m_buffer_dataset.csv'
+        test_file_path = f'{test_path}/{buffer_dist}m_buffer_test_dataset.csv'
 
         # Process Training Data
         if os.path.exists(train_file_path):
