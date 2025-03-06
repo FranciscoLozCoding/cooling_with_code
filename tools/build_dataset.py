@@ -17,7 +17,7 @@ from geopy.distance import geodesic
 import pystac_client
 import planetary_computer
 from odc.stac import stac_load
-from environment import BUFFER_DISTANCES, TARGET_VARIABLE
+from tools.environment import BUFFER_DISTANCES, TARGET_VARIABLE
 
 def interpolate_traffic_volume(uhi_gdf, traffic_gdf, method='nearest'):
   """
