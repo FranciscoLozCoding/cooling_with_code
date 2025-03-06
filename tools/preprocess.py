@@ -6,6 +6,7 @@ from scipy.stats import skew
 from scipy.stats import boxcox
 from scipy.stats.mstats import winsorize
 from sklearn.preprocessing import StandardScaler
+from tools.environment import BUFFER_DISTANCES, TARGET_VARIABLE
 
 def load_and_prepare_data(filepath, scaler=None, split=False, test_size=0.3, random_state=42):
     """
@@ -247,3 +248,57 @@ def load_and_preprocess_data(filepath, scaler=None, split=False, test_size=0.3, 
         return X_train, X_valid, y_train, y_valid, scaler
     else:
         return X, y, scaler
+    
+def apply_preprocessing_mixed_buffers(train_combined, test_combined, buffer_distances=BUFFER_DISTANCES):
+    """
+    Apply `preprocess_data()` to each buffer's subset of variables in both train and test datasets.
+    The generated features are prefixed with the corresponding buffer distance.
+
+    Parameters:
+        train_combined (pd.DataFrame): The merged training dataset with prefixed buffer features.
+        test_combined (pd.DataFrame): The merged testing dataset with prefixed buffer features.
+
+    Returns:
+        pd.DataFrame, pd.DataFrame: Updated train and test datasets with prefixed engineered features.
+    """
+    # Extract shared columns that should remain unchanged
+    train_shared_columns = [TARGET_VARIABLE]
+    test_shared_columns = ['Longitude', 'Latitude']
+
+    # Initialize lists to store processed buffer data
+    processed_train_parts = [train_combined[train_shared_columns].copy()]
+    processed_test_parts = [test_combined[test_shared_columns].copy()]
+
+    for buffer_dist in buffer_distances:
+        # Extract only this buffer's features
+        buffer_train = train_combined.filter(like=f"{buffer_dist}m_").copy()
+        buffer_test = test_combined.filter(like=f"{buffer_dist}m_").copy()
+
+        if buffer_train.empty or buffer_test.empty:
+            print(f"Skipping {buffer_dist}m buffer as no matching columns found.")
+            continue
+
+        # Remove buffer prefixes temporarily for preprocessing
+        buffer_train.columns = [col.replace(f"{buffer_dist}m_", "") for col in buffer_train.columns]
+        buffer_test.columns = [col.replace(f"{buffer_dist}m_", "") for col in buffer_test.columns]
+
+        # Apply preprocessing function
+        buffer_train = preprocess_data(buffer_train)
+        buffer_test = preprocess_data(buffer_test)
+
+        # Reapply buffer prefixes to new engineered features
+        buffer_train = buffer_train.add_prefix(f"{buffer_dist}m_")
+        buffer_test = buffer_test.add_prefix(f"{buffer_dist}m_")
+
+        # Append processed parts
+        processed_train_parts.append(buffer_train)
+        processed_test_parts.append(buffer_test)
+
+    # Concatenate all processed parts along columns
+    final_train = pd.concat(processed_train_parts, axis=1)
+    final_test = pd.concat(processed_test_parts, axis=1)
+
+    print(f"\nFinal Processed Training Dataset Shape: {final_train.shape}")
+    print(f"Final Processed Testing Dataset Shape: {final_test.shape}")
+
+    return final_train, final_test
