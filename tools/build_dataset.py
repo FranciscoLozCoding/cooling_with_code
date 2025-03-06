@@ -17,6 +17,7 @@ from geopy.distance import geodesic
 import pystac_client
 import planetary_computer
 from odc.stac import stac_load
+from environment import BUFFER_DISTANCES, TARGET_VARIABLE
 
 def interpolate_traffic_volume(uhi_gdf, traffic_gdf, method='nearest'):
   """
@@ -661,3 +662,60 @@ def generate_weather_data(buffer_df, manhattan_weather_csv='data/NY_Mesonet_Weat
             'Solar Flux [W/m^2]']] = buffer_df.apply(lambda row: assign_weather_data_avg(row, weather_manhattan, weather_bronx), axis=1)
     
     return buffer_df
+
+def load_and_combine_data():
+    """Load all buffer datasets for both train and test sets, merging by row index."""
+
+    train_combined = []
+    test_combined = []
+    shared_columns = ['Longitude', 'Latitude', TARGET_VARIABLE]
+
+    for buffer_dist in BUFFER_DISTANCES:
+        train_file_path = f'../data/train/{buffer_dist}m_buffer_dataset.csv'
+        test_file_path = f'../data/test/{buffer_dist}m_buffer_dataset.csv'
+
+        # Process Training Data
+        if os.path.exists(train_file_path):
+            print(f"Loading training data: {train_file_path}")
+            train_data = pd.read_csv(train_file_path)
+
+            # Keep shared columns only once
+            if not train_combined:
+                train_combined.append(train_data[shared_columns])
+
+            # Rename features by adding buffer prefix (excluding shared columns)
+            renamed_train_data = train_data.drop(columns=shared_columns).add_prefix(f"{buffer_dist}m_")
+            train_combined.append(renamed_train_data)
+        else:
+            print(f"Warning: Training file not found for {buffer_dist}m buffer.")
+
+        # Process Test Data
+        if os.path.exists(test_file_path):
+            print(f"Loading test data: {test_file_path}")
+            test_data = pd.read_csv(test_file_path)
+
+            # Keep shared columns only once
+            if not test_combined:
+                test_combined.append(test_data[shared_columns])
+
+            # Rename features by adding buffer prefix (excluding shared columns)
+            renamed_test_data = test_data.drop(columns=shared_columns).add_prefix(f"{buffer_dist}m_")
+            test_combined.append(renamed_test_data)
+        else:
+            print(f"Warning: Test file not found for {buffer_dist}m buffer.")
+
+    # Concatenate all collected datasets along columns
+    if train_combined:
+        train_combined = pd.concat(train_combined, axis=1)
+    else:
+        raise FileNotFoundError("No training buffer datasets were found!")
+
+    if test_combined:
+        test_combined = pd.concat(test_combined, axis=1)
+    else:
+        raise FileNotFoundError("No test buffer datasets were found!")
+
+    print(f"\nFinal Training Dataset Shape: {train_combined.shape}")
+    print(f"Final Test Dataset Shape: {test_combined.shape}")
+
+    return train_combined, test_combined
