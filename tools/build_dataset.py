@@ -663,16 +663,26 @@ def generate_weather_data(buffer_df, manhattan_weather_csv='data/NY_Mesonet_Weat
     
     return buffer_df
 
-def combine_buffer_datasets():
-    """Load all buffer datasets for both train and test sets, merging by row index."""
+def combine_buffer_datasets(train_path, test_path, buffer_distances=BUFFER_DISTANCES):
+    """
+    Load all buffer datasets for both train and test sets, merging by row index.
+
+    Parameters:
+        train_path (str): Directory containing training buffer datasets.
+        test_path (str): Directory containing test buffer datasets.
+        buffer_distances (list): List of buffer distances to load.
+
+    Returns:
+        tuple: A tuple containing the combined training and test datasets.
+    """
 
     train_combined = []
     test_combined = []
     shared_columns = ['Longitude', 'Latitude', TARGET_VARIABLE]
 
-    for buffer_dist in BUFFER_DISTANCES:
-        train_file_path = f'../data/train/{buffer_dist}m_buffer_dataset.csv'
-        test_file_path = f'../data/test/{buffer_dist}m_buffer_dataset.csv'
+    for buffer_dist in buffer_distances:
+        train_file_path = f'{train_path}/{buffer_dist}m_buffer_dataset.csv'
+        test_file_path = f'{test_path}/{buffer_dist}m_buffer_dataset.csv'
 
         # Process Training Data
         if os.path.exists(train_file_path):
