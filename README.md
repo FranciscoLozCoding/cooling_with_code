@@ -60,6 +60,13 @@ The following datasets will be used to develop the model:
    -  Data from New York City Department of Transportation (NYC DOT)
    - Useful for understanding the impact of traffic on local temperatures.
 
+7. **NYC Energy & Water Performance**
+   - Data retrieved from NYU Marron Institute of Urban Management's Civic Analytics Program and Urban Intelligence Lab in partnership with the Mayor’s Office of Climate & Environmental Justice.
+   - Data from: 
+      - Energy, water, and greenhouse gas emissions data are from NYC Local Law 84. Data are reported annually from 2011 by the Mayor’s Office of Climate & Environmental Justice and available for download through this map or NYC Open Data.
+      - Polygon shapes and property characteristics are from the NYC Primary Land Use Tax-lot Output (PLUTO) dataset available from BYTES of the BIG APPLE provided by the NYC Department of City Planning (DCP).
+      - 3D geometries are designed by Bartosz Bonczak based on the ESRI Multipatch NYC 3-D Building Model provided by the NYC Department of Information Technology & Telecommunications (DOITT) and available here.
+
 # Project Updates:
 
 1. https://youtu.be/R66yFI8sWi0 
@@ -100,5 +107,8 @@ The following datasets will be used to develop the model:
 - Automated Traffic Volume Counts
    - Description: New York City Department of Transportation (NYC DOT) uses Automated Traffic Recorders (ATR) to collect traffic sample volume counts at bridge crossings and roadways.These counts do not cover the entire year, and the number of days counted per location may vary from year to year.
    - Data Host: [NYC Open Data](https://data.cityofnewyork.us/Transportation/Automated-Traffic-Volume-Counts/7ym2-wayt)
+- NYC Energy & Water Performance
+   - Description: Local Law 84 of 2009 (LL84) requires annual energy and water benchmarking data to be submitted by owners of buildings with more than 50,000 square feet. This data is collected via the Environmental Protection Agency's (EPA) Portfolio Manager website. Each property is identified by it's EPA assigned property ID, and can contain one or more tax lots identified by one or more BBLs (Borough, Block, Lot) or one or more buildings identified by one or more building identification numbers (BIN)
+   - Data Host: [NYC Open Data](https://data.cityofnewyork.us/Environment/NYC-Building-Energy-and-Water-Data-Disclosure-for-/5zyy-y8am/about_data)
 - Predicting urban Heat Island in European cities: A comparative study of GRU, DNN, and ANN models using urban morphological variables
    - https://doi.org/10.1016/j.uclim.2024.102061 
