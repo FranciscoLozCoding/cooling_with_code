@@ -489,7 +489,8 @@ def generate_median(lower_left=(40.75, -74.01), upper_right=(40.88, -73.86), tim
 def generate_building_gdf(building_csv_file="data/Building_Footprints_With_Add_Attr.csv", lower_left=(40.75, -74.01), 
                           upper_right=(40.88, -73.86), padding=0.0015, 
                           drop_cols=["NAME","BIN","LSTMODDATE", "LSTSTATYPE", "DOITT_ID","FEAT_CODE", 
-                                     "SHAPE_AREA", "SHAPE_LEN", "BASE_BBL", "MPLUTO_BBL", "GEOMSOURCE","GLOBALID"]):
+                                     "SHAPE_AREA", "SHAPE_LEN", "BASE_BBL", "MPLUTO_BBL", "GEOMSOURCE","GLOBALID"],
+                          is_energy=False, energy_csv_file="data/nyc_energy_water_performance.csv"):
     """
     Generate a GeoDataFrame of building footprints within a bounding box.
 
@@ -515,6 +516,67 @@ def generate_building_gdf(building_csv_file="data/Building_Footprints_With_Add_A
         (buildings_gdf.geometry.centroid.x >= lower_left[1] + padding) &
         (buildings_gdf.geometry.centroid.x <= upper_right[1] - padding)
     ]
+
+    if is_energy:
+        energy_df = pd.read_csv(energy_csv_file)
+
+        # List of columns to keep for UHI prediction
+        keep_columns = ["NYC Borough, Block and Lot (BBL)", "NYC Building Identification Number (BIN)",
+                        "Weather Normalized Site EUI (kBtu/ft²)", "Site Energy Use (kBtu)", "Fuel Oil #2 Use (kBtu)", 
+                        "Fuel Oil #4 Use (kBtu)", "Diesel #2 Use (kBtu)", "District Steam Use (kBtu)",
+                        "Natural Gas Use (kBtu)", "Electricity Use - Grid Purchase (kBtu)", 
+                        "Electricity Use – Generated from Onsite Renewable Systems (kWh)",
+                        "Direct GHG Emissions (Metric Tons CO2e)", "Percent of Electricity that is Green Power",
+                        "Water Use (All Water Sources) (kgal)"]
+
+        # Drop unnecessary columns
+        energy_df = energy_df[keep_columns]
+
+        # fill NA with 0
+        energy_df.fillna(0, inplace=True)
+
+        # Ensure both columns are strings for a proper merge
+        buildings_gdf["MPLUTO_BBL"] = buildings_gdf["MPLUTO_BBL"].astype(str)
+        energy_df["NYC Borough, Block and Lot (BBL)"] = energy_df["NYC Borough, Block and Lot (BBL)"].astype(str)
+
+        # Perform a left join to keep only records from buildings_gdf
+        merged_gdf = buildings_gdf.merge(energy_df, left_on="MPLUTO_BBL", right_on="NYC Borough, Block and Lot (BBL)", how="left")
+
+        # replace Not Available with 0 in all cols
+        merged_gdf.fillna(0, inplace=True)
+        merged_gdf = merged_gdf.replace("Not Available", 0)
+
+        #drop columns we only needed for merging
+        merged_gdf.drop(columns=["NYC Building Identification Number (BIN)", "NYC Borough, Block and Lot (BBL)"], inplace=True)
+
+        #new cols
+        energy_cols = ["Weather Normalized Site EUI (kBtu/ft²)", "Site Energy Use (kBtu)", "Fuel Oil #2 Use (kBtu)", 
+                    "Fuel Oil #4 Use (kBtu)", "Diesel #2 Use (kBtu)", "District Steam Use (kBtu)",
+                    "Natural Gas Use (kBtu)", "Electricity Use - Grid Purchase (kBtu)", 
+                    "Electricity Use – Generated from Onsite Renewable Systems (kWh)",
+                    "Direct GHG Emissions (Metric Tons CO2e)", "Percent of Electricity that is Green Power",
+                    "Water Use (All Water Sources) (kgal)"]
+
+        # turn new cols, numeric
+        merged_gdf[energy_cols] = merged_gdf[energy_cols].apply(pd.to_numeric, errors='coerce')
+
+        #rename the energy cols
+        merged_gdf = merged_gdf.rename(columns={
+            "Weather Normalized Site EUI (kBtu/ft²)": "Weather_Normalized_Site_EUI_kBtu_ft2",
+            "Site Energy Use (kBtu)": "Site_Energy_Use_kBtu",
+            "Fuel Oil #2 Use (kBtu)": "Fuel_Oil_2_Use_kBtu",
+            "Fuel Oil #4 Use (kBtu)": "Fuel_Oil_4_Use_kBtu",
+            "Diesel #2 Use (kBtu)": "Diesel_2_Use_kBtu",
+            "District Steam Use (kBtu)": "District_Steam_Use_kBtu",
+            "Natural Gas Use (kBtu)": "Natural_Gas_Use_kBtu",
+            "Electricity Use - Grid Purchase (kBtu)": "Electricity_Use_Grid_Purchase_kBtu",
+            "Electricity Use – Generated from Onsite Renewable Systems (kWh)": "Electricity_Use_Generated_Onsite_Renewables_kWh",
+            "Direct GHG Emissions (Metric Tons CO2e)": "Direct_GHG_Emissions_MetricTons_CO2e",
+            "Percent of Electricity that is Green Power": "Percent_Electricity_Green_Power",
+            "Water Use (All Water Sources) (kgal)": "Water_Use_All_Sources_kgal"
+        })
+
+        buildings_gdf = merged_gdf
 
     #drop cols we dont need
     buildings_gdf.drop(columns=drop_cols,inplace=True)
