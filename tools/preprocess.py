@@ -103,7 +103,6 @@ def categorize_UHI(df):
     
     return new_df
 
-# create preprocessing function
 def preprocess_data(df):
   """
   Preprocess the input buffer dataset.
@@ -151,6 +150,21 @@ def preprocess_data(df):
   # Interaction: Age of Buildings
   df["BuildingAge_Temp"] = df["Building_Construction_Year"] * df["Air Temp at Surface [degC]"]
 
+  # Building & Urban Form Features
+  df["Building_Aspect_Ratio"] = df["Building_Height"] / np.sqrt(df["Total_Building_Area_m2"] + 1e-6)  # Avoid division by zero
+  df["Sky_View_Factor"] = 1 - df["Building_Density"]
+  df["Urban_Material_Index"] = df["Building_Construction_Year"] * df["NDBI"]
+  df["Permeable_Impermeable_Ratio"] = df["NDWI"] / (df["NDBI"] + df["SI"] + 1e-6)
+
+  # Vegetation & Surface Features
+  df["Land_Surface_Albedo"] = 1 - df["SI"]
+  df["Canopy_Cover_Ratio"] = df["NDVI"] / (df["Building_Density"] + 1e-6)
+  df["Soil_Moisture_Index"] = df["NDMI"] / (1 + df["NDWI"] + 1e-6)
+  
+  # Human Activity & Emissions
+  df["Traffic_Heat_Emission"] = df["Traffic_Volume"] * df["Air Temp at Surface [degC]"]
+  df["GHG_Proxy"] = df["Building_Count"] * df["Traffic_Volume"] * df["Solar Flux [W/m^2]"]
+    
   return df
 
 def apply_winsorization(df, limits=(0.01, 0.01)):
