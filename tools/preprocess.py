@@ -151,19 +151,19 @@ def preprocess_data(df):
   df["BuildingAge_Temp"] = df["Building_Construction_Year"] * df["Air Temp at Surface [degC]"]
 
   # Building & Urban Form Features
-  df["Building_Aspect_Ratio"] = df["Building_Height"] / np.sqrt(df["Total_Building_Area_m2"] + 1e-6)  # Avoid division by zero
-  df["Sky_View_Factor"] = 1 - df["Building_Density"]
-  df["Urban_Material_Index"] = df["Building_Construction_Year"] * df["NDBI"]
-  df["Permeable_Impermeable_Ratio"] = df["NDWI"] / (df["NDBI"] + df["SI"] + 1e-6)
+  df["Building_Aspect_Ratio"] = df["Building_Height"] / np.sqrt(df["Total_Building_Area_m2"] + 1e-6)  # Captures how tall and narrow or short and wide buildings are, affecting air circulation and shading.
+  df["Sky_View_Factor"] = 1 - df["Building_Density"] #Measures how much sky is visible from the ground, influencing heat retention.
+  df["Urban_Material_Index"] = df["Building_Construction_Year"] * df["NDBI"] #Older buildings often have higher thermal mass, affecting how heat is retained.
+  df["Permeable_Impermeable_Ratio"] = df["NDWI"] / (df["NDBI"] + df["SI"] + 1e-6) #Balances water coverage (NDWI) with impervious surfaces (NDBI, SI).
 
   # Vegetation & Surface Features
-  df["Land_Surface_Albedo"] = 1 - df["SI"]
-  df["Canopy_Cover_Ratio"] = df["NDVI"] / (df["Building_Density"] + 1e-6)
+  df["Land_Surface_Albedo"] = 1 - df["SI"] #Reflectivity Proxy, Surfaces with low reflectivity retain more heat.
+  df["Canopy_Cover_Ratio"] = df["NDVI"] / (df["Building_Density"] + 1e-6) #Measures the green cover relative to urban density.
   df["Soil_Moisture_Index"] = df["NDMI"] / (1 + df["NDWI"] + 1e-6)
   
   # Human Activity & Emissions
   df["Traffic_Heat_Emission"] = df["Traffic_Volume"] * df["Air Temp at Surface [degC]"]
-  df["GHG_Proxy"] = df["Building_Count"] * df["Traffic_Volume"] * df["Solar Flux [W/m^2]"]
+  df["GHG_Proxy"] = df["Building_Count"] * df["Traffic_Volume"] * df["Solar Flux [W/m^2]"] #Approximate emissions due to urbanization.
     
   return df
 
