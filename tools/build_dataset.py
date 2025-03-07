@@ -500,6 +500,8 @@ def generate_building_gdf(building_csv_file="data/Building_Footprints_With_Add_A
         upper_right (tuple): Upper-right corner of the bounding box (latitude, longitude).
         padding (float): Padding around the bounding box to include more buildings.
         drop_cols (list): Columns to drop from the GeoDataFrame.
+        is_energy (bool): Whether to include energy data.
+        energy_csv_file (str): Path to the CSV file containing energy data.
 
     Returns:
         GeoDataFrame: A GeoDataFrame of building footprints within the bounding
