@@ -106,7 +106,7 @@ def load_building_footprints_csv(csv_file):
 
     return buildings_gdf
 
-def buildings_in_buffer(buffer_geom, buildings_gdf, epsg_code_for_meters="EPSG:32618"):
+def buildings_in_buffer(buffer_geom, buildings_gdf, epsg_code_for_meters="EPSG:32618", energy_cols=[]):
     """
     Calculate building density metrics within a buffer.
 
@@ -120,6 +120,7 @@ def buildings_in_buffer(buffer_geom, buildings_gdf, epsg_code_for_meters="EPSG:3
         buffer_geom (shapely.geometry.Polygon): The buffer geometry in EPSG:4326.
         buildings_gdf (GeoDataFrame): Building footprints (with additional attributes) in EPSG:4326.
         epsg_code_for_meters (str): EPSG code for a metric CRS (default "EPSG:32618" for New York).
+        energy_cols (list)(optional): List of energy-related columns to include in the output.
 
     Returns:
         dict: Contains metrics including:
@@ -129,6 +130,7 @@ def buildings_in_buffer(buffer_geom, buildings_gdf, epsg_code_for_meters="EPSG:3
             - "building_height": Average roof height above ground (from HEIGHTROOF) among buildings with valid values.
             - "ground_elev": Average ground elevation (from GROUNDELEV) among buildings with valid values.
             - "construction_year": Average construction year (from CNSTRCT_YR) among buildings with valid values.
+            - "energy_cols" (optional): Average values of specified energy-related columns.
     """
 
     # Project the building GeoDataFrame and the buffer to the specified metric CRS.
@@ -158,13 +160,21 @@ def buildings_in_buffer(buffer_geom, buildings_gdf, epsg_code_for_meters="EPSG:3
     valid_years = buildings_in_buf['CNSTRCT_YR'][buildings_in_buf['CNSTRCT_YR'].notnull()]
     avg_year = valid_years.mean() if not valid_years.empty else 0
 
+    # compute average for energy columns
+    energy_data = {}
+    for col in energy_cols:
+        valid_energy = buildings_in_buf[col][buildings_in_buf[col].notnull()]
+        avg_energy = valid_energy.mean() if not valid_energy.empty else 0
+        energy_data[col] = avg_energy
+
     return {
-        "building_count": building_count,
-        "total_building_area_m2": intersection_area,
-        "building_density": density,
-        "building_height": avg_height,
-        "building_construction_year": avg_year,
-        "ground_elev": avg_ground
+        "Building_Count": building_count,
+        "Total_Building_Area_m2": intersection_area,
+        "Building_Density": density,
+        "Building_Height": avg_height,
+        "Building_Construction_Year": avg_year,
+        "Ground_Elevation": avg_ground,
+        **energy_data
     }
 
 def average_band_in_buffer(buffer_geom, xarray, band_name, project_to_utm, project_to_wgs84):
@@ -206,7 +216,7 @@ def average_band_in_buffer(buffer_geom, xarray, band_name, project_to_utm, proje
 
     return average_val
 
-def generate_buffer_dataset(latitudes, longitudes, buffer_radius, traffic_volume, xarray, buildings_gdf, UHI=None, datetimes=None, epsg_code_for_meters="EPSG:32618"):
+def generate_buffer_dataset(latitudes, longitudes, buffer_radius, traffic_volume, xarray, buildings_gdf, UHI=None, datetimes=None, epsg_code_for_meters="EPSG:32618", energy_cols_to_buffer=[]):
     '''
     Generate a dataset with averaged indices and building density metrics per buffer.
 
@@ -220,6 +230,7 @@ def generate_buffer_dataset(latitudes, longitudes, buffer_radius, traffic_volume
         UHI (list. optional): List of UHI values.
         datetimes (list, optional): Corresponding datetimes.
         epsg_code_for_meters (str, optional): EPSG code for metric projection (e.g., "EPSG:32618" for New York).
+        energy_cols_to_buffer (list, optional): List of energy-related columns in buildings_gdf to include in the output.
 
     Returns:
         DataFrame: A DataFrame with indices averaged per buffer plus building density metrics.
@@ -241,21 +252,21 @@ def generate_buffer_dataset(latitudes, longitudes, buffer_radius, traffic_volume
         buffer_wgs84 = transform(project_to_wgs84, buffer_utm)
 
         # Calculate spectral indices.
-        ndvi_value  = average_band_in_buffer(buffer_wgs84, xarray, 'NDVI', project_to_utm, project_to_wgs84)
-        ndbi_value  = average_band_in_buffer(buffer_wgs84, xarray, 'NDBI', project_to_utm, project_to_wgs84)
-        ndwi_value  = average_band_in_buffer(buffer_wgs84, xarray, 'NDWI', project_to_utm, project_to_wgs84)
-        si_value    = average_band_in_buffer(buffer_wgs84, xarray, 'SI', project_to_utm, project_to_wgs84)
-        ndmi_value  = average_band_in_buffer(buffer_wgs84, xarray, 'NDMI', project_to_utm, project_to_wgs84)
-        npcri_value = average_band_in_buffer(buffer_wgs84, xarray, 'NPCRI', project_to_utm, project_to_wgs84)
-        ca_value    = average_band_in_buffer(buffer_wgs84, xarray, 'Coastal_Aerosol', project_to_utm, project_to_wgs84)
+        spectral_indices = {
+            "NDVI": average_band_in_buffer(buffer_wgs84, xarray, 'NDVI', project_to_utm, project_to_wgs84),
+            "NDBI": average_band_in_buffer(buffer_wgs84, xarray, 'NDBI', project_to_utm, project_to_wgs84),
+            "NDWI": average_band_in_buffer(buffer_wgs84, xarray, 'NDWI', project_to_utm, project_to_wgs84),
+            "SI": average_band_in_buffer(buffer_wgs84, xarray, 'SI', project_to_utm, project_to_wgs84),
+            "NDMI": average_band_in_buffer(buffer_wgs84, xarray, 'NDMI', project_to_utm, project_to_wgs84),
+            "NPCRI": average_band_in_buffer(buffer_wgs84, xarray, 'NPCRI', project_to_utm, project_to_wgs84),
+            "Coastal_Aerosol": average_band_in_buffer(buffer_wgs84, xarray, 'Coastal_Aerosol', project_to_utm, project_to_wgs84)
+        }
 
         # Calculate building density metrics using the same buffer.
-        building_metrics = buildings_in_buffer(buffer_wgs84, buildings_gdf, epsg_code_for_meters)
+        building_metrics = buildings_in_buffer(buffer_wgs84, buildings_gdf, epsg_code_for_meters, energy_cols_to_buffer)
 
-        # Return all results.
-        return (ndvi_value, ndbi_value, ndwi_value, si_value, ndmi_value, npcri_value, ca_value,
-                building_metrics["building_count"], building_metrics["total_building_area_m2"], building_metrics["building_density"],
-                building_metrics["building_height"], building_metrics["building_construction_year"], building_metrics["ground_elev"])
+        # Return a dictionary
+        return {**spectral_indices, **building_metrics}
 
     # Process all points in parallel.
     results = Parallel(n_jobs=-1)(
@@ -263,33 +274,14 @@ def generate_buffer_dataset(latitudes, longitudes, buffer_radius, traffic_volume
         for lat, lon in tqdm(zip(latitudes, longitudes), total=len(latitudes), desc="Processing points")
     )
 
-    # Unpack results.
-    (ndvi_values, ndbi_values, ndwi_values, si_values,
-     ndmi_values, npcri_values, ca_values,
-     building_counts, building_areas, building_densities,
-     building_heights, building_construction_years, ground_elev) = zip(*results)
+    # Convert list of dicts to DataFrame
+    df = pd.DataFrame(results)
+    df.insert(0, 'Longitude', longitudes)
+    df.insert(1, 'Latitude', latitudes)
+    df.insert(2, 'datetime', None if datetimes is None else pd.to_datetime(datetimes))
+    df.insert(3, 'UHI', UHI)
+    df.insert(4, 'Traffic_Volume', traffic_volume)
 
-    # Build the DataFrame.
-    df = pd.DataFrame({
-        'Longitude': longitudes,
-        'Latitude': latitudes,
-        'datetime': None if datetimes is None else pd.to_datetime(datetimes),
-        'UHI': UHI,
-        'NDVI': ndvi_values,
-        'NDBI': ndbi_values,
-        'NDWI': ndwi_values,
-        'SI': si_values,
-        'NDMI': ndmi_values,
-        'NPCRI': npcri_values,
-        'Coastal_Aerosol': ca_values,
-        'Building_Count': building_counts,
-        'Total_Building_Area_m2': building_areas,
-        'Building_Density': building_densities,
-        'Building_Height': building_heights,
-        'Building_Construction_Year': building_construction_years,
-        'Ground_Elevation': ground_elev,
-        'Traffic_Volume': traffic_volume
-    })
     return df
 
 def assign_weather_station(lat, lon):
