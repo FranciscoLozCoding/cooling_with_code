@@ -103,69 +103,78 @@ def categorize_UHI(df):
     
     return new_df
 
-def preprocess_data(df):
-  """
-  Preprocess the input buffer dataset.
+def preprocess_data(df, energy_features=False):
+    """
+    Preprocess the input buffer dataset.
 
-  Parameters:
-      df (pd.DataFrame): The input buffer dataset.
+    Parameters:
+        df (pd.DataFrame): The input buffer dataset.
+        energy_features (bool): If True, include energy-related features in preprocessing.
 
-  Returns:
-      pd.DataFrame: The preprocessed dataset.
-  """
-  # Convert wind direction from degrees to radians
-  df["Wind Direction [radians]"] = np.radians(df["Wind Direction [degrees]"])
+    Returns:
+        pd.DataFrame: The preprocessed dataset.
+    """
+    # Convert wind direction from degrees to radians
+    df["Wind Direction [radians]"] = np.radians(df["Wind Direction [degrees]"])
 
-  # Compute sine and cosine for directional components
-  df["Wind_X"] = np.sin(df["Wind Direction [radians]"])  # East-West wind component
-  df["Wind_Y"] = np.cos(df["Wind Direction [radians]"])  # North-South wind component
+    # Compute sine and cosine for directional components
+    df["Wind_X"] = np.sin(df["Wind Direction [radians]"])  # East-West wind component
+    df["Wind_Y"] = np.cos(df["Wind Direction [radians]"])  # North-South wind component
 
-  # Interaction: Building Height * Wind Speed * Wind Direction
-  df["Building_Wind_X"] = df["Building_Height"] * df["Avg Wind Speed [m/s]"] * df["Wind_X"]
-  df["Building_Wind_Y"] = df["Building_Height"] * df["Avg Wind Speed [m/s]"] * df["Wind_Y"]
+    # Interaction: Building Height * Wind Speed * Wind Direction
+    df["Building_Wind_X"] = df["Building_Height"] * df["Avg Wind Speed [m/s]"] * df["Wind_X"]
+    df["Building_Wind_Y"] = df["Building_Height"] * df["Avg Wind Speed [m/s]"] * df["Wind_Y"]
 
-  # Interaction: Elevation * Wind Speed * Wind Direction
-  df["Elevation_Wind_X"] = df["Ground_Elevation"] * df["Avg Wind Speed [m/s]"] * df["Wind_X"]
-  df["Elevation_Wind_Y"] = df["Ground_Elevation"] * df["Avg Wind Speed [m/s]"] * df["Wind_Y"]
+    # Interaction: Elevation * Wind Speed * Wind Direction
+    df["Elevation_Wind_X"] = df["Ground_Elevation"] * df["Avg Wind Speed [m/s]"] * df["Wind_X"]
+    df["Elevation_Wind_Y"] = df["Ground_Elevation"] * df["Avg Wind Speed [m/s]"] * df["Wind_Y"]
 
-  # Interaction: Building count * height
-  df["BldgHeight_Count"] = df["Building_Height"] * df["Building_Count"]
+    # Interaction: Building count * height
+    df["BldgHeight_Count"] = df["Building_Height"] * df["Building_Count"]
+
+    # Interaction: Urbanization vs Vegetation
+    df["BuildingDensity_NDVI"] = df["Building_Density"] * df["NDVI"]
+    df["TotalBuildingArea_NDVI"] = df["Total_Building_Area_m2"] * df["NDVI"]
+    df["Traffic_NDVI"] = df["Traffic_Volume"] * df["NDVI"]
+
+    # Interaction: Climate interactions w/ urbanization
+    df["Temp_BuildingDensity"] = df["Air Temp at Surface [degC]"] * df["Building_Density"]
+
+    # Interaction: Humidity vs Vegetation
+    df["Humidity_NDVI"] = df["Relative Humidity [percent]"] * df["NDVI"]
+    df["Humidity_NDMI"] = df["Relative Humidity [percent]"] * df["NDMI"]
+
+    # Interaction: Traffic & Built Environment
+    df["Traffic_NDBI"] = df["Traffic_Volume"] * df["NDBI"]
+    df["Traffic_BuildingDensity"] = df["Traffic_Volume"] * df["Building_Density"]
+
+    # Interaction: Age of Buildings
+    df["BuildingAge_Temp"] = df["Building_Construction_Year"] * df["Air Temp at Surface [degC]"]
+
+    # Building & Urban Form Features
+    df["Building_Aspect_Ratio"] = df["Building_Height"] / np.sqrt(df["Total_Building_Area_m2"] + 1e-6)  # Captures how tall and narrow or short and wide buildings are, affecting air circulation and shading.
+    df["Sky_View_Factor"] = 1 - df["Building_Density"] #Measures how much sky is visible from the ground, influencing heat retention.
+    df["Urban_Material_Index"] = df["Building_Construction_Year"] * df["NDBI"] #Older buildings often have higher thermal mass, affecting how heat is retained.
+    df["Permeable_Impermeable_Ratio"] = df["NDWI"] / (df["NDBI"] + df["SI"] + 1e-6) #Balances water coverage (NDWI) with impervious surfaces (NDBI, SI).
+
+    # Vegetation & Surface Features
+    df["Land_Surface_Albedo"] = 1 - df["SI"] #Reflectivity Proxy, Surfaces with low reflectivity retain more heat.
+    df["Canopy_Cover_Ratio"] = df["NDVI"] / (df["Building_Density"] + 1e-6) #Measures the green cover relative to urban density.
+    df["Soil_Moisture_Index"] = df["NDMI"] / (1 + df["NDWI"] + 1e-6)
+
+    # Human Activity & Emissions
+    df["Traffic_Heat_Emission"] = df["Traffic_Volume"] * df["Air Temp at Surface [degC]"]
+    df["GHG_Proxy"] = df["Building_Count"] * df["Traffic_Volume"] * df["Solar Flux [W/m^2]"] #Approximate emissions due to urbanization.
+
+    # energy feature engineering
+    df["Energy_Use_Per_Building"] = df["Site_Energy_Use_kBtu"] / (df["Building_Count"] + 1e-6)
+    df["GHG_Emissions_Per_Building"] = df["Direct_GHG_Emissions_MetricTons_CO2e"] / (df["Building_Count"] + 1e-6)
+    df["Energy_Use_Per_Area"] = df["Site_Energy_Use_kBtu"] / (df["Total_Building_Area_m2"] + 1e-6)
+    df["Water_Use_Per_Area"] = df["Water_Use_All_Sources_kgal"] / (df["Total_Building_Area_m2"] + 1e-6)
+    df["Green_Energy_Ratio"] = df["Electricity_Use_Generated_Onsite_Renewables_kWh"] / (df["Electricity_Use_Grid_Purchase_kBtu"] + 1e-6)
+    df["Fuel_Dependency"] = (df["Natural_Gas_Use_kBtu"] + df["Fuel_Oil_2_Use_kBtu"] + df["Fuel_Oil_4_Use_kBtu"] + df["Diesel_2_Use_kBtu"] + df["District_Steam_Use_kBtu"]) / (df["Site_Energy_Use_kBtu"] + 1e-6)
     
-  # Interaction: Urbanization vs Vegetation
-  df["BuildingDensity_NDVI"] = df["Building_Density"] * df["NDVI"]
-  df["TotalBuildingArea_NDVI"] = df["Total_Building_Area_m2"] * df["NDVI"]
-  df["Traffic_NDVI"] = df["Traffic_Volume"] * df["NDVI"]
-
-  # Interaction: Climate interactions w/ urbanization
-  df["Temp_BuildingDensity"] = df["Air Temp at Surface [degC]"] * df["Building_Density"]
-
-  # Interaction: Humidity vs Vegetation
-  df["Humidity_NDVI"] = df["Relative Humidity [percent]"] * df["NDVI"]
-  df["Humidity_NDMI"] = df["Relative Humidity [percent]"] * df["NDMI"]
-
-  # Interaction: Traffic & Built Environment
-  df["Traffic_NDBI"] = df["Traffic_Volume"] * df["NDBI"]
-  df["Traffic_BuildingDensity"] = df["Traffic_Volume"] * df["Building_Density"]
-
-  # Interaction: Age of Buildings
-  df["BuildingAge_Temp"] = df["Building_Construction_Year"] * df["Air Temp at Surface [degC]"]
-
-  # Building & Urban Form Features
-  df["Building_Aspect_Ratio"] = df["Building_Height"] / np.sqrt(df["Total_Building_Area_m2"] + 1e-6)  # Captures how tall and narrow or short and wide buildings are, affecting air circulation and shading.
-  df["Sky_View_Factor"] = 1 - df["Building_Density"] #Measures how much sky is visible from the ground, influencing heat retention.
-  df["Urban_Material_Index"] = df["Building_Construction_Year"] * df["NDBI"] #Older buildings often have higher thermal mass, affecting how heat is retained.
-  df["Permeable_Impermeable_Ratio"] = df["NDWI"] / (df["NDBI"] + df["SI"] + 1e-6) #Balances water coverage (NDWI) with impervious surfaces (NDBI, SI).
-
-  # Vegetation & Surface Features
-  df["Land_Surface_Albedo"] = 1 - df["SI"] #Reflectivity Proxy, Surfaces with low reflectivity retain more heat.
-  df["Canopy_Cover_Ratio"] = df["NDVI"] / (df["Building_Density"] + 1e-6) #Measures the green cover relative to urban density.
-  df["Soil_Moisture_Index"] = df["NDMI"] / (1 + df["NDWI"] + 1e-6)
-  
-  # Human Activity & Emissions
-  df["Traffic_Heat_Emission"] = df["Traffic_Volume"] * df["Air Temp at Surface [degC]"]
-  df["GHG_Proxy"] = df["Building_Count"] * df["Traffic_Volume"] * df["Solar Flux [W/m^2]"] #Approximate emissions due to urbanization.
-    
-  return df
+    return df
 
 def apply_winsorization(df, limits=(0.01, 0.01)):
     """
@@ -215,7 +224,7 @@ def apply_boxcox_transformation(df, threshold, exclude_cols=[]):
 
     return df_transformed
 
-def load_and_preprocess_data(data, scaler=None, split=False, test_size=0.3, random_state=42):
+def load_and_preprocess_data(data, scaler=None, split=False, test_size=0.3, random_state=42, energy_features=False):
     """
     Load and preprocess dataset for analysis, optionally scaling features and splitting the dataset
     while preserving DataFrame format.
@@ -227,6 +236,7 @@ def load_and_preprocess_data(data, scaler=None, split=False, test_size=0.3, rand
         split (bool, optional): If True, split the data into training and validation sets.
         test_size (float, optional): Proportion of the dataset to include in the validation split (default 0.2).
         random_state (int, optional): Random seed for reproducibility.
+        energy_features (bool, optional): If True, include energy-related features in preprocessing.
 
     Returns:
         If split is False:
@@ -248,7 +258,7 @@ def load_and_preprocess_data(data, scaler=None, split=False, test_size=0.3, rand
         raise ValueError("Invalid input: `data` must be a file path (str) or a Pandas DataFrame.")
 
     #preprocess data
-    df = preprocess_data(df)
+    df = preprocess_data(df, energy_features=energy_features)
     
     # Separate features and target
     y = df['UHI']
@@ -277,7 +287,7 @@ def load_and_preprocess_data(data, scaler=None, split=False, test_size=0.3, rand
     else:
         return X, y, scaler
     
-def apply_preprocessing_mixed_buffers(train_combined, test_combined, buffer_distances=BUFFER_DISTANCES):
+def apply_preprocessing_mixed_buffers(train_combined, test_combined, buffer_distances=BUFFER_DISTANCES, energy_features=False):
     """
     Apply `preprocess_data()` to each buffer's subset of variables in both train and test datasets.
     The generated features are prefixed with the corresponding buffer distance.
@@ -285,6 +295,8 @@ def apply_preprocessing_mixed_buffers(train_combined, test_combined, buffer_dist
     Parameters:
         train_combined (pd.DataFrame): The merged training dataset with prefixed buffer features.
         test_combined (pd.DataFrame): The merged testing dataset with prefixed buffer features.
+        buffer_distances (list): List of buffer distances to process.
+        energy_features (bool): If True, include energy-related features in preprocessing.
 
     Returns:
         pd.DataFrame, pd.DataFrame: Updated train and test datasets with prefixed engineered features.
@@ -311,8 +323,8 @@ def apply_preprocessing_mixed_buffers(train_combined, test_combined, buffer_dist
         buffer_test.columns = [col.replace(f"{buffer_dist}m_", "") for col in buffer_test.columns]
 
         # Apply preprocessing function
-        buffer_train = preprocess_data(buffer_train)
-        buffer_test = preprocess_data(buffer_test)
+        buffer_train = preprocess_data(buffer_train, energy_features=energy_features)
+        buffer_test = preprocess_data(buffer_test, energy_features=energy_features)
 
         # Reapply buffer prefixes to new engineered features
         buffer_train = buffer_train.add_prefix(f"{buffer_dist}m_")
