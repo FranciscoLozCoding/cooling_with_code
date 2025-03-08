@@ -167,12 +167,13 @@ def preprocess_data(df, energy_features=False):
     df["GHG_Proxy"] = df["Building_Count"] * df["Traffic_Volume"] * df["Solar Flux [W/m^2]"] #Approximate emissions due to urbanization.
 
     # energy feature engineering
-    df["Energy_Use_Per_Building"] = df["Site_Energy_Use_kBtu"] / (df["Building_Count"] + 1e-6)
-    df["GHG_Emissions_Per_Building"] = df["Direct_GHG_Emissions_MetricTons_CO2e"] / (df["Building_Count"] + 1e-6)
-    df["Energy_Use_Per_Area"] = df["Site_Energy_Use_kBtu"] / (df["Total_Building_Area_m2"] + 1e-6)
-    df["Water_Use_Per_Area"] = df["Water_Use_All_Sources_kgal"] / (df["Total_Building_Area_m2"] + 1e-6)
-    df["Green_Energy_Ratio"] = df["Electricity_Use_Generated_Onsite_Renewables_kWh"] / (df["Electricity_Use_Grid_Purchase_kBtu"] + 1e-6)
-    df["Fuel_Dependency"] = (df["Natural_Gas_Use_kBtu"] + df["Fuel_Oil_2_Use_kBtu"] + df["Fuel_Oil_4_Use_kBtu"] + df["Diesel_2_Use_kBtu"] + df["District_Steam_Use_kBtu"]) / (df["Site_Energy_Use_kBtu"] + 1e-6)
+    if energy_features:
+        df["Energy_Use_Per_Building"] = df["Site_Energy_Use_kBtu"] / (df["Building_Count"] + 1e-6)
+        df["GHG_Emissions_Per_Building"] = df["Direct_GHG_Emissions_MetricTons_CO2e"] / (df["Building_Count"] + 1e-6)
+        df["Energy_Use_Per_Area"] = df["Site_Energy_Use_kBtu"] / (df["Total_Building_Area_m2"] + 1e-6)
+        df["Water_Use_Per_Area"] = df["Water_Use_All_Sources_kgal"] / (df["Total_Building_Area_m2"] + 1e-6)
+        df["Green_Energy_Ratio"] = df["Electricity_Use_Generated_Onsite_Renewables_kWh"] / (df["Electricity_Use_Grid_Purchase_kBtu"] + 1e-6)
+        df["Fuel_Dependency"] = (df["Natural_Gas_Use_kBtu"] + df["Fuel_Oil_2_Use_kBtu"] + df["Fuel_Oil_4_Use_kBtu"] + df["Diesel_2_Use_kBtu"] + df["District_Steam_Use_kBtu"]) / (df["Site_Energy_Use_kBtu"] + 1e-6)
     
     return df
 
