@@ -91,7 +91,7 @@ The following datasets will be used to develop the model:
    - Description: Building footprint polygons over the data challenge region of interest (KML format)
    - Contributors: Open Data Team at the NYC Office of Technology and Innovation (OTI)
 - New York City Open Data Project
-   - Data Host: https://data.cityofnewyork.us/Housing-Development/Building-Footprints/nqwf-w8eh
+   - Data Host: https://data.cityofnewyork.us
    - Terms of Use: https://www.nyc.gov/html/data/terms.html and https://www.nyc.gov/home/terms-of-use.page
    - License: https://github.com/CityOfNewYork/nyc-geo-metadata#Apache-2.0-1-ov-file
 - Weather Data
@@ -102,7 +102,7 @@ The following datasets will be used to develop the model:
    - License: https://nysmesonet.org/documents/NYS_Mesonet_Data_Access_Policy.pdf
 - Building Footprint Data with Additional Attributes
    - Description: Building footprints represent the full perimeter outline of each building as viewed from directly above. Additional attribute information maintained for each feature includes: Building Identification Number (BIN); Borough, Block, and Lot information(BBL); ground elevation at building base; roof height above ground elevation; construction year, and feature type.
-   - Data Host: [NYC Open Data](https://data.cityofnewyork.us/City-Government/Building-Footprints/5zhs-2jue)
+   - Data Host: [NYC Open Data](https://data.cityofnewyork.us/d/5zhs-2jue)
    - repo: https://github.com/CityOfNewYork/nyc-geo-metadata/blob/main/Metadata/Metadata_BuildingFootprints.md 
    - License: https://github.com/CityOfNewYork/nyc-geo-metadata/blob/main/LICENSE
 - Automated Traffic Volume Counts
