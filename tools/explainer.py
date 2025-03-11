@@ -24,7 +24,7 @@ class Explainer:
     - force_plot(): Generates a force plot for an individual prediction.
     """
 
-    def __init__(self, model, explainer_type, X, feature_names):
+    def __init__(self, model, explainer_type, X, feature_names, ref_data=None):
         """
         Initializes the Explainer with a trained model, explainer type, and dataset.
         
@@ -33,12 +33,13 @@ class Explainer:
         - explainer_type: SHAP explainer class (e.g., shap.TreeExplainer, shap.KernelExplainer).
         - X: Data (Pandas DataFrame) used to compute SHAP values.
         - feature_names: List of feature names.
+        - ref_data (optional): The reference dataset (background dataset) is used by SHAP to estimate the expected output of the model
         """
         self.model = model
         self.explainer_type = explainer_type
         self.X = pd.DataFrame(X, columns=feature_names)  # Ensure DataFrame format
         self.feature_names = feature_names
-        self.explainer = explainer_type(model)  # Initialize explainer
+        self.explainer = explainer_type(model, ref_data)  # Initialize explainer
         self.shap_values = self.explainer.shap_values(self.X)  # Compute SHAP values
         self.init_js()  # Initialize SHAP for Jupyter Notebook
 
