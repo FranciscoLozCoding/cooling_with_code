@@ -3,6 +3,7 @@
 import shap
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 class Explainer:
     """
@@ -37,7 +38,9 @@ class Explainer:
         """
         self.model = model
         self.explainer_type = explainer_type
-        self.X = pd.DataFrame(X, columns=feature_names)  # Ensure DataFrame format
+        self.X = np.array(X) if isinstance(X, pd.DataFrame) else X  # Ensure NumPy format
+        if ref_data is not None:
+            ref_data = np.array(ref_data) if isinstance(ref_data, pd.DataFrame) else ref_data # Ensure NumPy format
         self.feature_names = feature_names
         self.explainer = explainer_type(model, ref_data)  # Initialize explainer
         self.shap_values = self.explainer.shap_values(self.X)  # Compute SHAP values
@@ -45,11 +48,11 @@ class Explainer:
 
     def summary_plot(self):
         """Generates a SHAP summary plot showing global feature importance."""
-        shap.summary_plot(self.shap_values, self.X)
+        shap.summary_plot(self.shap_values, self.X, feature_names=self.feature_names)
 
     def bar_plot(self):
         """Generates a bar plot showing overall feature importance rankings."""
-        shap.summary_plot(self.shap_values, self.X, plot_type="bar")
+        shap.summary_plot(self.shap_values, self.X, feature_names=self.feature_names, plot_type="bar")
 
     def dependence_plot(self, feature_name):
         """
@@ -58,7 +61,7 @@ class Explainer:
         Parameters:
         - feature_name (str): The feature to analyze.
         """
-        shap.dependence_plot(feature_name, self.shap_values, self.X)
+        shap.dependence_plot(feature_name, self.shap_values, self.X, feature_names=self.feature_names)
 
     def force_plot(self, index=0):
         """
@@ -67,7 +70,7 @@ class Explainer:
         Parameters:
         - index (int): The index of the observation of interest.
         """
-        return shap.force_plot(self.explainer.expected_value, self.shap_values[index, :], self.X.iloc[index, :])
+        return shap.force_plot(self.explainer.expected_value, self.shap_values[index, :], self.X[index, :], feature_names=self.feature_names)
     
     def init_js(self):
         """Initializes SHAP for Jupyter Notebook."""
