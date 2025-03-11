@@ -77,7 +77,12 @@ class Explainer:
         Parameters:
         - index (int): The index of the observation of interest.
         """
-        return shap.force_plot(self.explainer.expected_value, self.shap_values[index, :], self.X[index, :], feature_names=self.feature_names)
+        if self.explainer_type == shap.DeepExplainer:
+            # Ensure expected_value is a single value (not tensor)
+            expected_value = np.array(self.explainer.expected_value)
+        else:
+            expected_value = self.explainer.expected_value
+        return shap.force_plot(expected_value, self.shap_values[index, :], self.X[index, :], feature_names=self.feature_names)
     
     def init_js(self):
         """Initializes SHAP for Jupyter Notebook."""
