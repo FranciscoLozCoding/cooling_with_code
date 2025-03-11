@@ -28,7 +28,8 @@ Model outputs should be in this csv format so that EY can grade our models. [Sub
 - **data**: folder that contains the raw & preprocessed data for the project
    - **data/test**: folder that contains the test datasets. Model Ouputs using this dataset will be turned into EY so that they can grade our model.
    - **data/train**: folder that contains the train datasets. We will use these to train our models
-- **images**: containes images used by notebooks for reporting
+- **images**: contains images used by notebooks for reporting
+- **app**: contains the source code for the gradio app in HuggingFace that utilizes our final model. (TODO)
 
 >NOTE: some of the raw datasets are managed with `git lfs`, refer to this documentation on how to work with `git lfs`: [git-lfs](https://git-lfs.com/), [Github Tutorial](https://github.com/git-lfs/git-lfs/wiki/Tutorial), [Atlassian Tutorial](https://www.atlassian.com/git/tutorials/git-lfs).
 
