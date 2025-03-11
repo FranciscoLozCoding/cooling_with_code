@@ -43,7 +43,11 @@ class Explainer:
             ref_data = np.array(ref_data) if isinstance(ref_data, pd.DataFrame) else ref_data # Ensure NumPy format
         self.feature_names = feature_names
         self.explainer = explainer_type(model, ref_data)  # Initialize explainer
-        self.shap_values = self.explainer.shap_values(self.X, check_additivity=False)  # Compute SHAP values
+        # Compute SHAP values
+        if self.explainer_type == shap.DeepExplainer:
+            self.shap_values = self.explainer.shap_values(self.X, check_additivity=False) 
+        else:
+            self.shap_values = self.explainer.shap_values(self.X)
         # Apply squeeze only if the array has three dimensions and the last dimension is 1
         if self.shap_values.ndim == 3 and self.shap_values.shape[-1] == 1:
             self.shap_values = np.squeeze(self.shap_values)
