@@ -25,7 +25,7 @@ class Explainer:
     - force_plot(): Generates a force plot for an individual prediction.
     """
 
-    def __init__(self, model, explainer_type, X, feature_names, ref_data=None, shape_values=None):
+    def __init__(self, model, explainer_type, X, feature_names, ref_data=None, shap_values=None):
         """
         Initializes the Explainer with a trained model, explainer type, and dataset.
         
@@ -35,7 +35,7 @@ class Explainer:
         - X: Data (Pandas DataFrame) used to compute SHAP values.
         - feature_names: List of feature names.
         - ref_data (optional): The reference dataset (background dataset) is used by SHAP to estimate the expected output of the model
-        - shape_values (optional): Precomputed SHAP values
+        - shap_values (optional): Precomputed SHAP values
         """
         self.model = model
         self.explainer_type = explainer_type
@@ -45,8 +45,8 @@ class Explainer:
         self.feature_names = feature_names
         self.explainer = explainer_type(model, ref_data)  # Initialize explainer
         # Compute SHAP values
-        if shape_values is not None:
-            self.shap_values = shape_values
+        if shap_values is not None:
+            self.shap_values = shap_values
         else:
             self.shap_values = self.explainer.shap_values(self.X, check_additivity=False) if self.explainer_type == shap.DeepExplainer else self.explainer.shap_values(self.X)
         # Apply squeeze only if the array has three dimensions and the last dimension is 1
