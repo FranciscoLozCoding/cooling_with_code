@@ -122,9 +122,6 @@ class UhiModel:
         # Scale the input data
         X_scaled = self.scale(X_processed)
 
-        # Ensure the scaled data is 2D
-        X_scaled = X_scaled.reshape(1, -1)
-
         # Make prediction
         y_pred = self.model.predict(X_scaled)
 
