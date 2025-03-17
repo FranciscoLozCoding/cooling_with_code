@@ -23,6 +23,8 @@ class Explainer:
     - bar_plot(): Generates a bar chart of feature importance.
     - dependence_plot(): Generates a dependence plot for a feature.
     - force_plot(): Generates a force plot for an individual prediction.
+    - init_js(): Initializes SHAP for Jupyter Notebook.
+    - reasoning(): Provides insights on why a record received a high or low UHI index.
     """
 
     def __init__(self, model, explainer_type, X, feature_names, ref_data=None, shap_values=None):
@@ -88,3 +90,54 @@ class Explainer:
     def init_js(self):
         """Initializes SHAP for Jupyter Notebook."""
         shap.initjs()
+        
+    def reasoning(self, index=0, location=(None, None)):
+        """
+        Provides insights on why the record received a high or low UHI index.
+
+        Parameters:
+            index (int): The index of the observation of interest.
+            location (tuple) (optional): The location of the record (long, lat).
+
+        Returns:
+            dict: The insights for the selected record.
+        """
+
+        if self.explainer_type == shap.DeepExplainer:
+            # Ensure expected_value is a single value (not tensor)
+            expected_value = np.array(self.explainer.expected_value)
+        else:
+            expected_value = self.explainer.expected_value
+
+        # Validate record index
+        if index >= len(self.shap_values) or index < 0:
+            return {"error": "Invalid record index"}
+
+        # Extract SHAP values for the specified record
+        record_shap_values = self.shap_values[index]
+
+        # Compute SHAP-based final prediction
+        shap_final_prediction = expected_value + sum(record_shap_values)
+
+        # Structure feature contributions
+        feature_contributions = [
+            {
+                "feature": feature,
+                "shap_value": value,
+                "impact": "increase" if value > 0 else "decrease"
+            }
+            for feature, value in zip(self.feature_names, record_shap_values)
+        ]
+
+        # Create JSON structure
+        shap_json = {
+            "record_index": index,
+            "longitude": location[0],
+            "latitude": location[1],
+            "base_value": expected_value,
+            "shap_final_prediction": shap_final_prediction,  # SHAP-based predicted value
+            "uhi_status": "Urban Heat Island" if shap_final_prediction > 1 else "Cooler Region",
+            "feature_contributions": feature_contributions,
+        }
+
+        return shap_json
