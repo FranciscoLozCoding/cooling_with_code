@@ -1,7 +1,6 @@
 """This module provides an explainer for the model."""
 
 import shap
-import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
