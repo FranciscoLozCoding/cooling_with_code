@@ -103,13 +103,11 @@ class Explainer:
             dict: The insights for the selected record.
         """
 
-        # if self.explainer_type == shap.DeepExplainer:
-        #     # Ensure expected_value is a single value (not tensor)
-        #     expected_value = np.array(self.explainer.expected_value)[0]
-        # else:
-        #     expected_value = self.explainer.expected_value
-
-        expected_value = self.explainer.expected_value
+        if self.explainer_type == shap.DeepExplainer:
+            # Ensure expected_value is a single value (not tensor)
+            expected_value = np.array(self.explainer.expected_value)[0]
+        else:
+            expected_value = self.explainer.expected_value
 
         # Validate record index
         if index >= len(self.shap_values) or index < 0:
