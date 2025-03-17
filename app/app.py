@@ -138,13 +138,21 @@ def load_interface():
         Our project focused on creating a micro-scale machine learning model that predicts the locations and severity of the UHI effect.
         The model used various datasets, including near-surface air temperatures, building footprint data, weather data, and 
         satellite data, to identify key drivers of UHI. This model provides insights into urban areas that are most affected by UHI, 
-        enabling urban planners and policymakers to take effective mitigation actions.
+        enabling urban planners and policymakers to take effective mitigation actions. This demo only showcases the ResNet model we created, to fully
+        deploy this model we would integrate it with satellite imagery and weather data to provide real-time predictions.\n
+
+        ## How to Use
+        To use the model, input the required parameters in the fields provided. The model will predict the UHI index based on the inputs.
+        The UHI index is a measure of the intensity of the Urban Heat Island effect, with values > 1 indicating a UHI effect.
+        The model will also provide insights into the contributions of each feature to the UHI index prediction, as well as a map showing the location
+        of the prediction based on the longitude and latitude inputs. The predicted UHI index and the status (Urban Heat Island or Cooler Region) will be displayed.\n
         >NOTE: The longitude and latitude inputs are used to identify the location of the prediction, but they do not affect the UHI index prediction.\n
 
         ## Repository
         The code for this project is available on GitHub. It includes the model training, evaluation, and prediction scripts, as well as
         the datasets used for training and testing. The repository also contains Jupyter notebooks that provide detailed explanations of the model's
-        architecture, training process, and evaluation metrics. The notebooks include visualizations of the model's performance and feature importance analysis.\n
+        architecture, training process, and evaluation metrics. The notebooks include visualizations of the model's performance and feature importance analysis.
+        The repository also includes our Final Report.\n
         [Project Repo](https://github.com/FranciscoLozCoding/cooling_with_code)
         """
         )
@@ -178,14 +186,14 @@ def load_interface():
               m150_NDBI, m300_SI, m300_NPCRI, m300_Coastal_Aerosol, m300_Total_Building_Area_m2,
               m300_Building_Construction_Year, m300_Ground_Elevation, m300_Building_Height, m300_Building_Count,
               m300_NDVI, m300_NDBI, m300_Building_Density, solar_flux]
-    uhi = gr.number(label="Predicted UHI Index", precision=5)
+    uhi = gr.Number(label="Predicted UHI Index", precision=5)
 
     # set model explainer outputs
     uhi_label = gr.Label(label="Predicted Status based on UHI Index")
-    feature_contributions = gr.JSON(label="Feature Contributions", info="The contributions of each feature to the UHI index prediction")
+    feature_contributions = gr.JSON(label="Feature Contributions")
 
     # Urban Location
-    plot = gr.Plot(label="Urban Location", info="A plot showing the location of the prediction based on the longitude and latitude inputs")
+    plot = gr.Plot(label="Urban Location")
 
     model_page = gr.Interface(
         predict, 
