@@ -1,0 +1,208 @@
+import gradio as gr
+import shap
+from model import UhiModel
+from explainer import UhiExplainer
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+
+MODEL = UhiModel("mixed_buffers_ResNet_model.keras","mixed_buffers_standard_scaler.pkl")
+
+def filter_map(uhi, longitude, latitude):
+    '''
+    This function generates a map based on uhi prediction
+    '''
+    #set up custom data
+    data = [uhi, longitude, latitude]
+
+    # Create the plot
+    fig = go.Figure(go.Scattermapbox(
+        lat=latitude,
+        lon=longitude,
+        mode='markers',
+        marker=go.scattermapbox.Marker(
+            size=6
+        ),
+        hoverinfo="text",
+        hovertemplate='<b>UHI Index</b>: %{customdata[0]}<br><b>long</b>: %{customdata[1]}<br><b>lat</b>: %{customdata[2]}<br>',
+        customdata=data
+    ))
+
+    fig.update_layout(
+        mapbox_style="open-street-map",
+        hovermode='closest',
+        mapbox=dict(
+            bearing=0,
+            center=go.layout.mapbox.Center(
+                lat=40.7128,
+                lon=-74.0060  # Default to New York City for initial view
+            ),
+            pitch=0,
+            zoom=10
+        ),
+    )
+
+    return fig
+
+def predict(
+        longitude, latitude, m50_NPCRI, m100_Ground_Elevation, avg_wind_speed, 
+        wind_direction, traffic_volume, m150_Ground_Elevation, 
+        relative_humidity, m150_NDVI, m150_NDBI, 
+        m300_SI, m300_NPCRI, m300_Coastal_Aerosol, 
+        m300_Total_Building_Area_m2, m300_Building_Construction_Year, m300_Ground_Elevation, 
+        m300_Building_Height, m300_Building_Count, m300_NDVI,
+        m300_NDBI, m300_Building_Density, solar_flux
+    ):
+    '''
+    Predict the UHI index for the data inputed, Longitude and Latitude are used to generate a map
+    and do not affect the UHI index prediction.
+    '''
+
+    # Create a dictionary with input data and dataset var names
+    input_data = {
+        "50m_1NPCRI": m50_NPCRI,
+        "100m_Ground_Elevation": m100_Ground_Elevation,
+        "Avg_Wind_Speed": avg_wind_speed,
+        "Wind_Direction": wind_direction,
+        "Traffic_Volume": traffic_volume,
+        "150m_Ground_Elevation": m150_Ground_Elevation,
+        "Relative_Humidity": relative_humidity,
+        "150m_NDVI": m150_NDVI,
+        "150m_NDBI": m150_NDBI,
+        "300m_SI": m300_SI,
+        "300m_NPCRI": m300_NPCRI,
+        "300m_Coastal_Aerosol": m300_Coastal_Aerosol,
+        "300m_Total_Building_Area_m2": m300_Total_Building_Area_m2,
+        "300m_Building_Construction_Year": m300_Building_Construction_Year,
+        "300m_Ground_Elevation": m300_Ground_Elevation,
+        "300m_Building_Height": m300_Building_Height,
+        "300m_Building_Count": m300_Building_Count,
+        "300m_NDVI": m300_NDVI,
+        "300m_NDBI": m300_NDBI,
+        "300m_Building_Density": m300_Building_Density,
+        "Solar_Flux": solar_flux
+    }
+    
+    # Convert to DataFrame
+    input_df = pd.DataFrame(input_data, index=[0])
+
+    #predict
+    uhi_index = MODEL.predict(input_df)
+
+    # explain the prediction
+    explainer = UhiExplainer(
+        model=MODEL.model,
+        explainer_type=shap.DeepExplainer,
+        X=input_df,
+        feature_names=input_df.columns,
+        ref_data=input_df,
+        shap_values=None  # Compute SHAP values on the fly
+    )
+    reason = explainer.reasoning(index=0, location=(longitude, latitude))
+
+    # generate map
+    plot = filter_map(uhi_index, longitude, latitude)
+
+    return uhi_index, reason["uhi_status"], reason["feature_contributions"], plot
+
+def load_examples(csv_file):
+    '''
+    Load examples from csv file
+    '''
+    # Read examples from CSV file
+    df = pd.read_csv(csv_file)
+
+    # Convert DataFrame to a list of lists
+    examples = df.values.tolist()
+
+    return examples
+
+def load_interface(): 
+    '''
+    Configure Gradio interface
+    '''
+
+    #set blocks
+    info_page = gr.Blocks()
+
+    with info_page:
+        # set title and description
+        gr.Markdown(
+        """
+        # ResNet model for Predicting Urban Heat Island (UHI) Index
+        
+        **Contributors**: Francisco Lozano, Dalton Knapp, Adam Zizi\n
+        **University**: Depaul University\n
+
+        ## Overview
+        Our project focused on creating a micro-scale machine learning model that predicts the locations and severity of the UHI effect.
+        The model used various datasets, including near-surface air temperatures, building footprint data, weather data, and 
+        satellite data, to identify key drivers of UHI. This model provides insights into urban areas that are most affected by UHI, 
+        enabling urban planners and policymakers to take effective mitigation actions.
+        >NOTE: The longitude and latitude inputs are used to identify the location of the prediction, but they do not affect the UHI index prediction.\n
+
+        ## Repository
+        The code for this project is available on GitHub. It includes the model training, evaluation, and prediction scripts, as well as
+        the datasets used for training and testing. The repository also contains Jupyter notebooks that provide detailed explanations of the model's
+        architecture, training process, and evaluation metrics. The notebooks include visualizations of the model's performance and feature importance analysis.\n
+        [Project Repo](https://github.com/FranciscoLozCoding/cooling_with_code)
+        """
+        )
+    
+    # set inputs and outputs for the model
+    longitude = gr.Number(label="Longitude", precision=5, info="The Longitude of the location")
+    latitude = gr.Number(label="Latitude", precision=5, info="The Latitude of the location")
+    m50_NPCRI = gr.Number(label="50m NPCRI", precision=5, info="The average Normalized Difference Vegetation Index in a 50m Buffer Zone")
+    m100_Ground_Elevation = gr.Number(label="100m Ground Elevation", precision=5, info="The average Ground Elevation in a 100m Buffer Zone")
+    avg_wind_speed = gr.Number(label="Avg Wind Speed [m/s]", precision=5, info="The average Wind Speed at the location")
+    wind_direction = gr.Number(label="Wind Direction [degrees]", precision=5, info="The average Wind Direction at the location")
+    traffic_volume = gr.Number(label="Traffic Volume", precision=5, info="The Traffic Volume at the location")
+    m150_Ground_Elevation = gr.Number(label="150m Ground Elevation", precision=5, info="The average Ground Elevation in a 150m Buffer Zone")
+    relative_humidity = gr.Number(label="Relative Humidity [percent]", precision=5, info="The average Relative Humidity at the location")
+    m150_NDVI = gr.Number(label="150m NDVI", precision=5, info="The average Normalized Difference Vegetation Index in a 150m Buffer Zone")
+    m150_NDBI = gr.Number(label="150m NDBI", precision=5, info="The average Normalized Difference Built-up Index in a 150m Buffer Zone")
+    m300_SI = gr.Number(label="300m SI", precision=5, info="The average Shadow Index in a 300m Buffer Zone")
+    m300_NPCRI = gr.Number(label="300m NPCRI", precision=5, info="The average Normalized Pigment Chlorophyll Ratio Index in a 300m Buffer Zone")
+    m300_Coastal_Aerosol = gr.Number(label="300m Coastal Aerosol", precision=5, info="The average Coastal Aerosol in a 300m Buffer Zone")
+    m300_Total_Building_Area_m2 = gr.Number(label="300m Total Building Area(m2)", precision=5, info="The Total Building Area in a 300m Buffer Zone")
+    m300_Building_Construction_Year = gr.Number(label="300m Building Construction Year", precision=5, info="The average Building Construction Year in a 300m Buffer Zone")
+    m300_Ground_Elevation = gr.Number(label="300m Ground Elevation", precision=5, info="The average Ground Elevation in a 300m Buffer Zone")
+    m300_Building_Height = gr.Number(label="300m Building Height", precision=5, info="The average Building Height in a 300m Buffer Zone")
+    m300_Building_Count = gr.Number(label="300m Building Count", precision=5, info="The average Building Count in a 300m Buffer Zone")
+    m300_NDVI = gr.Number(label="300m NDVI", precision=5, info="The average Normalized Difference Vegetation Index in a 300m Buffer Zone")
+    m300_NDBI = gr.Number(label="300m NDBI", precision=5, info="The average Normalized Difference Built-up Index in a 300m Buffer Zone")
+    m300_Building_Density = gr.Number(label="300m Building Density", precision=5, info="The average Building Density in a 300m Buffer Zone")
+    solar_flux = gr.Number(label="Solar Flux [W/m^2]", precision=5, info="The average Solar Flux at the location")
+    inputs = [longitude, latitude, m50_NPCRI, m100_Ground_Elevation, avg_wind_speed, wind_direction, 
+              traffic_volume, m150_Ground_Elevation, relative_humidity, m150_NDVI, 
+              m150_NDBI, m300_SI, m300_NPCRI, m300_Coastal_Aerosol, m300_Total_Building_Area_m2,
+              m300_Building_Construction_Year, m300_Ground_Elevation, m300_Building_Height, m300_Building_Count,
+              m300_NDVI, m300_NDBI, m300_Building_Density, solar_flux]
+    uhi = gr.number(label="Predicted UHI Index", precision=5)
+
+    # set model explainer outputs
+    uhi_label = gr.Label(label="Predicted Status based on UHI Index")
+    feature_contributions = gr.JSON(label="Feature Contributions", info="The contributions of each feature to the UHI index prediction")
+
+    # Urban Location
+    plot = gr.Plot(label="Urban Location", info="A plot showing the location of the prediction based on the longitude and latitude inputs")
+
+    model_page = gr.Interface(
+        predict, 
+        inputs=inputs, 
+        outputs=[uhi, uhi_label, feature_contributions, plot],
+        live=True, 
+        examples=load_examples("examples.csv"),
+        title="Interact with The ResNet UHI Model",
+        description="This model predicts the Urban Heat Island (UHI) index based on various environmental and urban factors. Adjust the inputs to see how they affect the UHI index prediction.",
+    )
+
+    iface = gr.TabbedInterface(
+        [info_page, model_page],
+        ["Information", "UHI Model"]
+    )
+    
+    iface.launch(server_name="0.0.0.0", server_port=7860, allowed_paths=["/"])
+
+if __name__ == "__main__":
+    load_interface()
