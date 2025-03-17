@@ -76,6 +76,8 @@ class UhiModel:
             "300m_GHG_Proxy": m300_GHG_Proxy
         }
 
+        output = pd.DataFrame(output, index=[0])
+
         return output
         
     def scale(self, X):
