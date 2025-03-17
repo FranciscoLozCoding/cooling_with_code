@@ -17,12 +17,6 @@ class UhiExplainer:
     - shap_values: Computed SHAP values.
 
     Methods:
-    - apply_shap(): Computes SHAP values.
-    - summary_plot(): Generates a SHAP summary plot.
-    - bar_plot(): Generates a bar chart of feature importance.
-    - dependence_plot(): Generates a dependence plot for a feature.
-    - force_plot(): Generates a force plot for an individual prediction.
-    - init_js(): Initializes SHAP for Jupyter Notebook.
     - reasoning(): Provides insights on why a record received a high or low UHI index.
     """
 
