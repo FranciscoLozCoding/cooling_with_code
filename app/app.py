@@ -134,9 +134,36 @@ def load_interface():
         ## How to Use
         To use the model, input the required parameters in the fields provided or select an example from the table. The model will predict the UHI index based on the inputs.
         The UHI index is a measure of the intensity of the Urban Heat Island effect, with values > 1 indicating a UHI effect.
+        The parameters will be preprocessed and new features will be created based on the input data.
         The model will also provide insights into the contributions of each feature to the UHI index prediction, as well as a map showing the location
         of the prediction based on the longitude and latitude inputs. The predicted UHI index and the status (Urban Heat Island or Cooler Region) will be displayed.\n
         >NOTE: The longitude and latitude inputs are used to identify the location of the prediction, but they do not affect the UHI index prediction.\n
+
+        ## Final Feature Set
+        After preprocessing, the final feature set used in the model includes:
+        - 150m NPCRI (50m_1NPCRI): The average Normalized Pigment Chlorophyll Ratio Index in a 150m Buffer Zone.
+        - 100m_Elevation_Wind_X: Interaction between ground elevation, average wind speed, and the east-west wind component within a 100m buffer.
+        - 150m_Traffic_Volume: The Traffic Volume at the location.
+        - 150m_Elevation_Wind_Y: Interaction between ground elevation, average wind speed, and the north-south wind component within a 150m buffer.
+        - 150m_Humidity_NDVI: Interaction between relative humidity and the Normalized Difference Vegetation Index (NDVI) within a 150m buffer.
+        - 150m_Traffic_NDBI: Interaction between traffic volume and the Normalized Difference Built-up Index (NDBI) within a 150m buffer.
+        - 300m_SI: The average Shadow Index in a 300m Buffer Zone.
+        - 300m_NPCRI: The average Normalized Pigment Chlorophyll Ratio Index in a 300m Buffer Zone.
+        - 300m_Coastal_Aerosol: The average Coastal Aerosol in a 300m Buffer Zone.
+        - 300m_Total_Building_Area_m2: The Total Building Area (m2) in a 300m Buffer Zone.
+        - 300m_Building_Construction_Year: The average Building Construction Year in a 300m Buffer Zone.
+        - 300m_Ground_Elevation: The average Ground Elevation in a 300m Buffer Zone.
+        - 300m_Building_Wind_X: interaction between building height, average wind speed, and the east-west wind component within a 300m buffer.
+        - 300m_Building_Wind_Y: interaction between building height, average wind speed, and the north-south wind component within a 300m buffer.
+        - 300m_Elevation_Wind_Y: interaction between ground elevation, average wind speed, and the north-south wind component within a 300m buffer.
+        - 300m_BldgHeight_Count: interaction between building height and building count within a 300m buffer.
+        - 300m_TotalBuildingArea_NDVI: interaction between total building area and NDVI within a 300m buffer.
+        - 300m_Traffic_NDVI: interaction between traffic volume and NDVI within a 300m buffer.
+        - 300m_Traffic_NDBI: interaction between traffic volume and NDBI within a 300m buffer.
+        - 300m_Building_Aspect_Ratio: the ratio of building height to the square root of total building area within a 300m buffer.
+        - 300m_Sky_View_Factor: 1 - Building Density within a 300m buffer.
+        - 300m_Canopy_Cover_Ratio: the ratio of NDVI to Building Density within a 300m buffer.
+        - 300m_GHG_Proxy: interaction between building count, traffic volume, and solar flux within a 300m buffer.\n
 
         ## Metrics
         For a quick look of our model performance, here is its r2 score:
@@ -154,7 +181,7 @@ def load_interface():
     # set inputs and outputs for the model
     longitude = gr.Number(label="Longitude", precision=5, info="The Longitude of the location")
     latitude = gr.Number(label="Latitude", precision=5, info="The Latitude of the location")
-    m150_NPCRI = gr.Number(label="150m NPCRI", precision=5, info="The average Normalized Difference Vegetation Index in a 150m Buffer Zone. NPCRI is a remote sensing index designed to estimate the chlorophyll content in vegetation.")
+    m150_NPCRI = gr.Number(label="150m NPCRI (50m_1NPCRI)", precision=5, info="The average Normalized Difference Vegetation Index in a 150m Buffer Zone. NPCRI is a remote sensing index designed to estimate the chlorophyll content in vegetation.")
     m100_Ground_Elevation = gr.Number(label="100m Ground Elevation", precision=5, info="The average Ground Elevation in a 100m Buffer Zone")
     avg_wind_speed = gr.Number(label="Avg Wind Speed [m/s]", precision=5, info="The average Wind Speed [m/s] at the location")
     wind_direction = gr.Number(label="Wind Direction [degrees]", precision=5, info="The average Wind Direction [degrees] at the location")
@@ -194,8 +221,7 @@ def load_interface():
         inputs=inputs, 
         outputs=[uhi, uhi_label, feature_contributions, plot],
         examples=load_examples("examples.csv"),
-        cache_examples=True,
-        cache_mode='lazy',
+        cache_examples=False,
         title="Interact with The ResNet UHI Model",
         description="This model predicts the Urban Heat Island (UHI) index based on various environmental and urban factors. Adjust the inputs to see how they affect the UHI index prediction.",
     )
