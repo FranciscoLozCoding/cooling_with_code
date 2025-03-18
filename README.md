@@ -20,7 +20,11 @@ Model outputs should be in this csv format so that EY can grade our models. [Sub
 - Dalton Knapp (dknapp7@depaul.edu)
 - Adam Zizi (azizi@depaul.edu)
 
-## Directory setup
+# Final Report
+
+>TODO
+
+# Directory setup
 - **samples**: contains sample notebooks given to us by EY.
 - **tools**: contains python functions we used throughout our project.
 - **models**: contains models we develop throughout the project.
@@ -29,9 +33,23 @@ Model outputs should be in this csv format so that EY can grade our models. [Sub
    - **data/test**: folder that contains the test datasets. Model Ouputs using this dataset will be turned into EY so that they can grade our model.
    - **data/train**: folder that contains the train datasets. We will use these to train our models
 - **images**: contains images used by notebooks for reporting
-- **app**: contains the source code for the gradio app in HuggingFace that utilizes our final model. (TODO)
+- **app**: contains the source code for the gradio app in HuggingFace that utilizes our final model.
 
 >NOTE: some of the raw datasets are managed with `git lfs`, refer to this documentation on how to work with `git lfs`: [git-lfs](https://git-lfs.com/), [Github Tutorial](https://github.com/git-lfs/git-lfs/wiki/Tutorial), [Atlassian Tutorial](https://www.atlassian.com/git/tutorials/git-lfs).
+
+# Final Presentation
+
+>TODO
+
+# Project Updates:
+
+1. https://youtu.be/R66yFI8sWi0 
+2. https://youtu.be/iaMCGXgNhc0
+3. https://youtu.be/xFb1rXLsXTo
+
+# App Deployment
+We deployed our final model in HuggingFace via a gradio app. [Check it out!]()
+>TODO
 
 # Datasets
 
@@ -67,12 +85,6 @@ The following datasets will be used to develop the model:
       - Energy, water, and greenhouse gas emissions data are from NYC Local Law 84. Data are reported annually from 2011 by the Mayor’s Office of Climate & Environmental Justice and available for download through this map or NYC Open Data.
       - Polygon shapes and property characteristics are from the NYC Primary Land Use Tax-lot Output (PLUTO) dataset available from BYTES of the BIG APPLE provided by the NYC Department of City Planning (DCP).
       - 3D geometries are designed by Bartosz Bonczak based on the ESRI Multipatch NYC 3-D Building Model provided by the NYC Department of Information Technology & Telecommunications (DOITT) and available here.
-
-# Project Updates:
-
-1. https://youtu.be/R66yFI8sWi0 
-2. https://youtu.be/iaMCGXgNhc0
-3. https://youtu.be/xFb1rXLsXTo 
 
 # References: 
 - New York City UHI Index
