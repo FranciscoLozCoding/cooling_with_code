@@ -48,8 +48,7 @@ Model outputs should be in this csv format so that EY can grade our models. [Sub
 3. https://youtu.be/xFb1rXLsXTo
 
 # App Deployment
-We deployed our final model in HuggingFace via a gradio app. [Check it out!]()
->TODO
+We deployed our final model in HuggingFace via a gradio app. [Check it out!](https://huggingface.co/spaces/FranciscoLozDataScience/uhi_resnet_model)
 
 # Datasets
 
