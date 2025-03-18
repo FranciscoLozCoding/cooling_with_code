@@ -1,12 +1,13 @@
 import gradio as gr
 import shap
-from model import UhiModel
-from explainer import UhiExplainer
+from model import UhiPredictor
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
-MODEL = UhiModel("mixed_buffers_ResNet_model.keras","mixed_buffers_standard_scaler.pkl")
+ref_data = pd.read_parquet("UHI_explainer_ref_data.parquet")
+cols = pd.read_parquet("UHI_explainer_ref_data.parquet").columns
+MODEL = UhiPredictor("mixed_buffers_ResNet_model.keras", "mixed_buffers_standard_scaler.pkl", shap.DeepExplainer, ref_data, cols)
 
 def filter_map(uhi, longitude, latitude):
     '''
@@ -45,8 +46,8 @@ def filter_map(uhi, longitude, latitude):
     return fig
 
 def predict(
-        longitude, latitude, m50_NPCRI, m100_Ground_Elevation, avg_wind_speed, 
-        wind_direction, traffic_volume, m150_Ground_Elevation, 
+        longitude, latitude, m150_NPCRI, m100_Ground_Elevation, avg_wind_speed, 
+        wind_direction_deg, traffic_volume, m150_Ground_Elevation, 
         relative_humidity, m150_NDVI, m150_NDBI, 
         m300_SI, m300_NPCRI, m300_Coastal_Aerosol, 
         m300_Total_Building_Area_m2, m300_Building_Construction_Year, m300_Ground_Elevation, 
@@ -60,10 +61,10 @@ def predict(
 
     # Create a dictionary with input data and dataset var names
     input_data = {
-        "50m_1NPCRI": m50_NPCRI,
+        "150m_NPCRI": m150_NPCRI,
         "100m_Ground_Elevation": m100_Ground_Elevation,
         "Avg_Wind_Speed": avg_wind_speed,
-        "Wind_Direction": wind_direction,
+        "Wind_Direction_deg": wind_direction_deg,
         "Traffic_Volume": traffic_volume,
         "150m_Ground_Elevation": m150_Ground_Elevation,
         "Relative_Humidity": relative_humidity,
@@ -87,23 +88,12 @@ def predict(
     input_df = pd.DataFrame(input_data, index=[0])
 
     #predict
-    uhi_index = MODEL.predict(input_df)
-
-    # explain the prediction
-    explainer = UhiExplainer(
-        model=MODEL.model,
-        explainer_type=shap.DeepExplainer,
-        X=input_df,
-        feature_names=input_df.columns,
-        ref_data=input_df,
-        shap_values=None  # Compute SHAP values on the fly
-    )
-    reason = explainer.reasoning(index=0, location=(longitude, latitude))
+    output = MODEL.predict(input_df)
 
     # generate map
-    plot = filter_map(uhi_index, longitude, latitude)
+    plot = filter_map(output["predicted_uhi_index"], longitude, latitude)
 
-    return uhi_index, reason["uhi_status"], reason["feature_contributions"], plot
+    return output["predicted_uhi_index"] , output["uhi_status"], output["feature_contributions"], plot
 
 def load_examples(csv_file):
     '''
