@@ -31,7 +31,7 @@ The [Project Notebook](Project_Notebook.ipynb) provides a guideline in exploring
 # Directory setup
 - **samples**: contains sample notebooks given to us by EY.
 - **notebooks**: contains the notebooks we created throughout our project.
-- **tools**: contains python functions we used throughout our project.
+   - **notebooks/tools**: contains python functions we used throughout our project.
 - **models**: contains models we develop throughout the project.
 - **submissions**: contains predictions we submit to the challenge.
 - **data**: folder that contains the raw & preprocessed data for the project
