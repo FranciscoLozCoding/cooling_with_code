@@ -20,12 +20,17 @@ Model outputs should be in this csv format so that EY can grade our models. [Sub
 - Dalton Knapp (dknapp7@depaul.edu)
 - Adam Zizi (azizi@depaul.edu)
 
+# Project Notebook
+
+The [Project Notebook](Project_Notebook.ipynb) provides a guideline in exploring our notebooks we created.
+
 # Final Report
 
 >TODO
 
 # Directory setup
 - **samples**: contains sample notebooks given to us by EY.
+- **notebooks**: contains the notebooks we created throughout our project.
 - **tools**: contains python functions we used throughout our project.
 - **models**: contains models we develop throughout the project.
 - **submissions**: contains predictions we submit to the challenge.
