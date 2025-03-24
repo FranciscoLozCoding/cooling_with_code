@@ -36,7 +36,7 @@ Access our Final Report [here](https://depauledu-my.sharepoint.com/:b:/g/persona
 - **submissions**: contains predictions we submit to the challenge.
 - **data**: folder that contains the raw & preprocessed data for the project
    - **data/test**: folder that contains the test datasets. Model Ouputs using this dataset will be turned into EY so that they can grade our model.
-   - **data/train**: folder that contains the train datasets. We will use these to train our models
+   - **data/train**: folder that contains the train datasets. We will use these to train & validate our models
 - **images**: contains images used by notebooks for reporting
 - **app**: contains the source code for the gradio app in HuggingFace that utilizes our final model.
 - **archive**: includes any files that are not being used anymore.
