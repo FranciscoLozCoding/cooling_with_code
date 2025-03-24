@@ -26,7 +26,7 @@ The [Project Notebook](Project_Notebook.ipynb) provides a guideline in exploring
 
 # Final Report
 
->TODO
+Access our Final Report [here](https://depauledu-my.sharepoint.com/:b:/g/personal/flozano2_depaul_edu/ERagpyaGfU9IjDKukqh9jGgBIROAUsVwIXKiss1fgfMq2Q?e=po7bdz)!
 
 # Directory setup
 - **samples**: contains sample notebooks given to us by EY.
